@@ -3,15 +3,15 @@
     <v-layout align-center justify-center>
       <v-flex xs12 sm8 md5>
         <v-card class="elevation-12">
-          <v-toolbar dark color="red">
+          <v-toolbar dark  >
             <v-img
-              src="/addessa_logo.png"
+              src="/logo.png"
               max-width="50"
               max-height="50"
               class="mr-2"
             ></v-img
             ><v-toolbar-title
-              ><strong>Webportal Pro V1</strong></v-toolbar-title
+              ><strong>APP LOGIN PAGE</strong></v-toolbar-title
             >
           </v-toolbar>
           <v-card-text>
@@ -36,7 +36,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn
-              color="primary"
+             dark
               @click="authenticate"
               :loading="loadingStatus"
               >Login</v-btn
@@ -56,7 +56,7 @@ export default {
   data() {
     return {
       form: {
-        email: "guimba_branch@webportal.test",
+        email: "",
         password: "",
       },
     };

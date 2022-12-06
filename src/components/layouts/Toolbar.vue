@@ -1,6 +1,6 @@
 <template>
   <nav>
-    <v-app-bar app clipped-left  style="background-color: #f2e7d0; border-radius: 10px;">
+    <v-app-bar app clipped-left  style="background-color: white; border-radius: 10px;">
       <!-- <v-app-bar-nav-icon @click.stop="drawer"></v-app-bar-nav-icon> -->
       <v-btn icon @click.stop="drawer">
         <v-icon>{{ toggleDrawer ? "mdi-menu" : "mdi-menu-open" }}</v-icon>
@@ -11,14 +11,14 @@
         max-height="40"
         style="margin: 5px"
       ></v-img>
-      <v-toolbar-title> <strong>Addessa Portal  {{connections.connection}}</strong></v-toolbar-title>
+      <v-toolbar-title> <strong>APP NAME  {{connections.connection}}</strong></v-toolbar-title>
 
       <v-spacer></v-spacer>
       <v-spacer></v-spacer>
       <v-spacer></v-spacer>
     
  
-                  <v-select
+                  <!-- <v-select
                       style="margin-top: 15px; margin-right: 15px; width: 10px"
                       :items="connections.databases"
                       label="Select Database"
@@ -28,13 +28,13 @@
                       dense
                       :loading="loadingStatus"
                       @change ="change()"
-                       
-                 ></v-select>
+                      :hidden="true"
+                 ></v-select> -->
 
       
     
       <v-tooltip-title >
-        <strong style="text-align: center">Addessa {{currentUser.branch == null? '': currentUser.branch.name}}</strong>
+        <strong style="text-align: center">USER BRANCH {{currentUser.branch == null? '': currentUser.branch.name}}</strong>
       </v-tooltip-title>
 
       <v-tooltip bottom>
