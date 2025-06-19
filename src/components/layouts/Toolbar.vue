@@ -11,7 +11,15 @@
         max-height="40"
         style="margin: 5px"
       ></v-img>
-      <v-toolbar-title> <strong>APP NAME  {{connections.connection}}</strong></v-toolbar-title>
+      <v-toolbar-title class="d-flex align-center">
+  <svg xmlns="http://www.w3.org/2000/svg" 
+       height="24" viewBox="0 0 24 24" 
+       fill="currentColor" class="mr-2">
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
+  </svg>
+  <strong>SalesEdge</strong>
+</v-toolbar-title>
+
 
       <v-spacer></v-spacer>
       <v-spacer></v-spacer>
@@ -34,17 +42,11 @@
       
     
       <v-tooltip-title >
-        <strong style="text-align: center">USER BRANCH {{currentUser.branch == null? '': currentUser.branch.name}}</strong>
+        <strong style="text-align: center">{{currentUser.branch == null? '': currentUser.branch.name}}</strong>
       </v-tooltip-title>
 
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on" @click="goDark">
-            <v-icon>
-              {{ isDark ? "mdi-brightness-4" : "mdi-brightness-7" }}
-            </v-icon>
-          </v-btn>
-        </template>
+       
         <span>{{ isDark ? "Go Dark" : "Go Light" }}</span>
       </v-tooltip>
      

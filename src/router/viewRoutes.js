@@ -41,6 +41,8 @@ import customer_digitized from "../views/credit_collection/customer_digitized/di
 import installment_due from "../views/credit_collection/installment_due_of_customer/installment.vue" 
 import aging_reconciliation from "../views/credit_collection/aging_reconciliation/reconciliation.vue" 
 import dunning_letters from "../views/credit_collection/dunning_letters/dunning.vue";
+import creditinvestigation from "../views/credit_collection/credit_investigation/credit_inv_index.vue";
+
 
 //Validation Portal
 import validation_template from "../views/validation_portal/template/template.vue"
@@ -79,6 +81,14 @@ import sapreports_incoming_customer_deposit from "../views/sap_reports/incoming_
 import sapreports_incoming_payment_openbalance from "../views/sap_reports/incoming_payment_open_balance/incoming_payment_open_balance.vue";
 //database configure
 import databaseconfigure from "../views/settings/database/configure.vue";
+
+
+
+
+//SALESEDGE
+ 
+import salesedge from "../views/salesedge/home.vue";
+
 
 
 const viewRoutes = [
@@ -317,6 +327,14 @@ const viewRoutes = [
     }
   },
   {
+    path: "/smart_tools/credit/investigation",
+    component: creditinvestigation,
+    name: "credit investigation",
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: "/validation-portal/template",
     component: validation_template,
     name: "validation_template",
@@ -460,6 +478,17 @@ const viewRoutes = [
   {
     path: "/settings/database/configure",
     component: databaseconfigure,
+    name: "configure",
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+
+  //SALES EDGE
+  {
+    path: "/sales/smi/",
+    component: salesedge,
     name: "configure",
     meta: {
       requiresAuth: true
