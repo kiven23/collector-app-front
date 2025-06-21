@@ -88,8 +88,15 @@
         <!-- Sales with Product Table -->
         <v-tab-item key="sales">
           <v-card flat class="pa-4">
-            <h2>💼 Sales</h2>
-  
+            <h2>Product Maitenance</h2>
+            <v-spacer></v-spacer>
+              <v-btn color="green darken-1" @click="exportTemplates" style="margin: 10px;">
+                Download Templates
+              </v-btn>
+                 <!-- Upload Trigger Button -->
+              <v-btn color="primary" @click="dialogProductBonus = true">
+                Upload Product Bonus Template
+              </v-btn>
             <v-data-table
               :headers="productHeaders"
               :items="products"
@@ -121,90 +128,131 @@
         </v-tab-item>
       </v-tabs-items>
          <!-- Modal Dialog -->
-    <v-dialog v-model="showModal" max-width="1200px">
-      <v-card>
+        <v-dialog v-model="showModal" max-width="1200px">
+          <v-card>
 
-        
-        <v-card-title class="headline grey lighten-2">
-          <v-icon left>mdi-file-document</v-icon>
-            Sales Report Generator
-        </v-card-title>
-        
-        <v-card-text>
-          <v-row dense>
+            
+            <v-card-title class="headline grey lighten-2">
+              <v-icon left>mdi-file-document</v-icon>
+                Sales Report Generator
+                <v-spacer ></v-spacer>
+                <v-btn color="green darken-1" v-if="reportData.length !==0" @click="exportToExcel">
+                Export to Excel
+              </v-btn>
 
-           
-            <v-col cols="12" sm="6" >
-              <v-select
-                v-model="reportType"
-                :items="reportTypes"
-                label="Type of Report"
-                outlined
-                dense
-                style="margin-top: 10px;"
-              ></v-select>
-            </v-col>
+            </v-card-title>
+            
+            <v-card-text>
+              <v-row dense>
 
-            <v-col cols="12" sm="6">
-              <v-select
-                v-model="selectedBranch"
-                :items="branches"
-                label="Select Branch"
-                outlined
-                dense
-                  style="margin-top: 10px;"
-              ></v-select>
-            </v-col>
-       
-            <v-col cols="12" sm="6">
-              <v-menu ref="fromMenu" v-model="fromMenu" :close-on-content-click="false" transition="scale-transition" offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field v-model="form.startDate" label="Start Date" prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on" />
+              
+                <v-col cols="12" sm="6" >
+                  <v-select
+                    v-model="reportType"
+                    :items="reportTypes"
+                    label="Type of Report"
+                    outlined
+                    dense
+                    style="margin-top: 10px;"
+                  ></v-select>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-select
+                    v-model="selectedBranch"
+                    :items="branches"
+                    label="Select Branch"
+                    outlined
+                    dense
+                      style="margin-top: 10px;"
+                  ></v-select>
+                </v-col>
+          
+                <v-col cols="12" sm="6">
+                  <v-menu ref="fromMenu" v-model="fromMenu" :close-on-content-click="false" transition="scale-transition" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field v-model="form.startDate" label="Start Date" prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on" />
+                    </template>
+                    <v-date-picker v-model="form.startDate" @input="fromMenu = false"></v-date-picker>
+                  </v-menu>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-menu ref="toMenu" v-model="toMenu" :close-on-content-click="false" transition="scale-transition" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field v-model="form.endDate" label="End Date" prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on" />
+                    </template>
+                    <v-date-picker v-model="form.endDate" @input="toMenu = false"></v-date-picker>
+                  </v-menu>
+                </v-col>
+              </v-row>
+
+              <v-btn color="success" class="mt-3" block @click="generateReport" :loading="loading">
+                <v-icon left>mdi-play</v-icon> Generate Report
+              </v-btn>
+              
+              <v-divider class="my-4"></v-divider>
+          
+              <!-- Data Table -->
+              <v-data-table :headers="headers" :items="reportData" dense outlined item-value="employee">
+                <template v-slot:no-data>
+                  <v-alert type="info" text> No report data yet. </v-alert>
                 </template>
-                <v-date-picker v-model="form.startDate" @input="fromMenu = false"></v-date-picker>
-              </v-menu>
-            </v-col>
+              </v-data-table>
+            </v-card-text>
 
-            <v-col cols="12" sm="6">
-              <v-menu ref="toMenu" v-model="toMenu" :close-on-content-click="false" transition="scale-transition" offset-y>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field v-model="form.endDate" label="End Date" prepend-icon="mdi-calendar" readonly v-bind="attrs" v-on="on" />
-                </template>
-                <v-date-picker v-model="form.endDate" @input="toMenu = false"></v-date-picker>
-              </v-menu>
-            </v-col>
-          </v-row>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text color="red" @click="showModal = false">
+                Close
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+            <!-- Modal Dialog -->
+     <v-dialog v-model="dialogProductBonus" max-width="500px">
+        <v-card>
+          <v-card-title>
+            <span class="headline">Upload Product Bonus Template</span>
+          </v-card-title>
 
-          <v-btn color="success" class="mt-3" block @click="generateReport">
-            <v-icon left>mdi-play</v-icon> Generate Report
-          </v-btn>
+          <v-card-text>
+            <v-file-input
+              v-model="file"
+              label="Select Excel File"
+              accept=".xlsx, .xls"
+              outlined
+              dense
+              prepend-icon="mdi-upload"
+            ></v-file-input>
 
-          <v-divider class="my-4"></v-divider>
+            <div v-if="file" class="mt-2">
+              <v-chip color="green" text-color="white" small>
+                {{ file.name }}
+              </v-chip>
+            </div>
+          </v-card-text>
 
-          <!-- Data Table -->
-          <v-data-table :headers="headers" :items="reportData" dense outlined item-value="employee">
-            <template v-slot:no-data>
-              <v-alert type="info" text> No report data yet. </v-alert>
-            </template>
-          </v-data-table>
-        </v-card-text>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text color="red" @click="showModal = false">
-            Close
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="red" text @click="dialogProductBonus = false">Cancel</v-btn>
+            <v-btn color="primary" :disabled="!file" @click="uploadFile">Upload</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>`
     </v-container>
   </template>
   
   <script>
+  import * as XLSX from 'xlsx';
+  import { saveAs } from 'file-saver';
   import axios from 'axios';
   export default {
     data() {
       return {
+        file: null,
+        dialogProductBonus: false,
+        loading: false,
         salesData: [],
         pagination: {},
         currentPage: 1,
@@ -228,8 +276,7 @@
           // { text: 'Action', value: 'action' },
         ],
         products: [
-          { brand: 'Samsung', model: 'Galaxy A50', product_bonus: 'Free Case' },
-          { brand: 'Apple', model: 'iPhone 14', product_bonus: 'Gift Card' },
+      
         ],
         salesEmployees: [ 
         ],
@@ -291,24 +338,141 @@
         });
     },
     async generateReport() {
+      var identify;
       if (!this.form.startDate || !this.form.endDate) {
         alert("Please select a date range.");
         return;
       }
 
+      if(this.reportType == 'Quarterly Evaluation'){
+        identify = 0
+           this.headers = [
+            { text: "Branch", value: "branch" },
+            { text: "Employee", value: "employee" },
+            { text: "Date Hired", value: "datehired" },
+            { text: "Brand", value: "brand" },
+            { text: "Quota", value: "qouta" },
+            { text: "Sales Quota", value: "sale_qouta" },
+            { text: "Sales Performance", value: "sales_performance" },
+            { text: "Performance Assessment", value: "peformance_assessment" },
+            { text: "Recommendation", value: "recommendation" },
+           ]
+
+      }else{
+        identify = 1
+        this.headers = [
+            { text: "Branch", value: "branch" },
+            { text: "Employee", value: "employee" },
+            { text: "Date Hired", value: "datehired" },
+            { text: "Brand", value: "brand" },
+            { text: "Quota", value: "qouta" },
+            { text: "Sales Quota", value: "sale_qouta" },
+            { text: "Sales Performance", value: "sales_performance" },
+            { text: "Product Bonus Total", value: "product_bonus_total" },
+            { text: "Received by/Date:", value: "received" },
+           ]
+      }
+
       try {
+        this.loading = true
         const res = await axios.get("http://10.10.10.40:8083/api/sales/smi/generator", {
           params: {
             start_date: this.form.startDate,
             end_date: this.form.endDate,
+            q: identify,
+            branch: this.selectedBranch
           },
         });
-
+        
         this.reportData = res.data.reports;
+        this.loading = false
       } catch (err) {
         console.error("Error fetching report:", err);
       }
     },
+    exportToExcel() {
+      var data 
+      if(this.reportType == 'Quarterly Evaluation'){
+           data = this.reportData.map(row => {
+              return {
+                  Branch: row.branch,
+                  Employee: row.employee,
+                  DateHired: row.datehired,
+                  Brand: row.brand,
+                  Quota: row.qouta,
+                  SalesQuota: row.sale_qouta,
+                  SalesPerformance: row.sales_performance,
+                  PerformanceAssessment: row.peformance_assessment,
+                  Recommendation: row.recommendation,
+            };
+          });
+        }else{
+          data = this.reportData.map(row => {
+              return {
+                  Branch: row.branch,
+                  Employee: row.employee,
+                  DateHired: row.datehired,
+                  Brand: row.brand,
+                  Quota: row.qouta,
+                  SalesQuota: row.sale_qouta,
+                  SalesPerformance: row.sales_performance,
+                  ProductBonusTotal: row.product_bonus_total,
+                  ReceivedbyDate: ''
+            };
+          });
+
+        }
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array"
+      });
+      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+      saveAs(blob, "sales_report.xlsx");
+    },
+    exportTemplates() {
+      var data 
+        data = this.products.map(row => {
+            return {
+                Brand: row.brand,
+                Model: row.model,
+                Product_Bonus: row.product_bonus,
+            };
+        });
+     
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: "xlsx",
+        type: "array"
+      });
+
+      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+      saveAs(blob, "product_bonus_templates.xlsx");
+    },
+    uploadFile() {
+      if (!this.file) return;
+
+      const formData = new FormData();
+      formData.append("file", this.file);
+
+       axios.post("http://10.10.10.40:8083/api/sales/smi/upload-product-bonus", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
+      .then(() => {
+        this.$emit("uploaded");
+        this.dialogProductBonus = false;
+        this.file = null;
+       
+      })
+      .catch((err) => {
+        console.error(err);
+        this.$toast.error("Upload failed");
+      });
+    }
     },
     mounted() {
       axios
@@ -335,9 +499,23 @@
         .then((res) => {
             
             this.branches = []
+            this.branches.push('ALL') 
            res.data.forEach((i,s) => {
                  this.branches.push(i.Branch) 
            });
+           
+        })
+        .catch((error) => {
+          console.error('❌ Error fetching data:', error);
+        });
+
+        axios
+        .get('http://10.10.10.40:8083/api/sales/smi/items')
+        .then((res) => {
+       
+          this.products = res.data
+ 
+           
         })
         .catch((error) => {
           console.error('❌ Error fetching data:', error);
