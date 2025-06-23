@@ -71,7 +71,7 @@
                 </v-chip>
               </template>
               <template v-slot:item.employee_id="{ item }">
-                <v-chip @click="getreport()" color="green lighten-4" text-color="green darken-4" small>
+                <v-chip @click="getreport( item.employee_id )" color="green lighten-4" text-color="green darken-4" small>
                   {{ item.employee_id }}
                 </v-chip>
               </template>
@@ -210,36 +210,76 @@
           </v-card>
         </v-dialog>
             <!-- Modal Dialog -->
-     <v-dialog v-model="dialogProductBonus" max-width="500px">
-        <v-card>
-          <v-card-title>
-            <span class="headline">Upload Product Bonus Template</span>
-          </v-card-title>
+      <v-dialog v-model="dialogProductBonus" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Upload Product Bonus Template</span>
+            </v-card-title>
 
-          <v-card-text>
-            <v-file-input
-              v-model="file"
-              label="Select Excel File"
-              accept=".xlsx, .xls"
-              outlined
-              dense
-              prepend-icon="mdi-upload"
-            ></v-file-input>
+            <v-card-text>
+              <v-file-input
+                v-model="file"
+                label="Select Excel File"
+                accept=".xlsx, .xls"
+                outlined
+                dense
+                prepend-icon="mdi-upload"
+              ></v-file-input>
 
-            <div v-if="file" class="mt-2">
-              <v-chip color="green" text-color="white" small>
-                {{ file.name }}
-              </v-chip>
-            </div>
-          </v-card-text>
+              <div v-if="file" class="mt-2">
+                <v-chip color="green" text-color="white" small>
+                  {{ file.name }}
+                </v-chip>
+              </div>
+            </v-card-text>
 
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="red" text @click="dialogProductBonus = false">Cancel</v-btn>
-            <v-btn color="primary" :disabled="!file" @click="uploadFile">Upload</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>`
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="red" text @click="dialogProductBonus = false">Cancel</v-btn>
+              <v-btn color="primary" :disabled="!file" @click="uploadFile">Upload</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="salesdialog" max-width="1000px" persistent>
+      <v-card background-color="primary">
+        <v-toolbar dark color="indigo">
+          <v-toolbar-title>📋 Product Sales List</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="salesdialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+
+        <v-card-text>
+          <v-data-table
+            :headers="Salesheaders"
+            :items="sales"
+            class="elevation-1"
+            dense
+            :search="search"
+          >
+            <template v-slot:top>
+              <v-text-field
+                v-model="search"
+                label="🔍 Search"
+                class="mx-4"
+                append-icon="mdi-magnify"
+                single-line
+                hide-details
+              ></v-text-field>
+            </template>
+            <template v-slot:item.Amt="{ item }">
+              <span class="font-weight-bold text--primary">₱ {{ parseFloat(item.Amt).toLocaleString() }}</span>
+            </template>
+          </v-data-table>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="salesdialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     </v-container>
   </template>
   
@@ -250,6 +290,24 @@
   export default {
     data() {
       return {
+        search: '',
+        salesdialog: false,
+        sales: [  {
+          DocDate: '2025-02-14',
+          ItemCode: 'I-003666',
+          ItemName: 'MS2535GIB',
+          Brand: 'LG',
+          Supplier: 'LG ELECTRONICS PHILS. INC.',
+          Amt: '6500.00',
+        }],
+        Salesheaders: [
+        { text: 'Date', value: 'DocDate' },
+        { text: 'Item Code', value: 'ItemCode' },
+        { text: 'Item Name', value: 'ItemName' },
+        { text: 'Brand', value: 'Brand' },
+        { text: 'Supplier', value: 'Supplier' },
+        { text: 'Amount', value: 'Amt', align: 'right' },
+        ],
         file: null,
         dialogProductBonus: false,
         loading: false,
@@ -307,8 +365,19 @@
       };
     },
     methods: {
-      getreport(){
-         alert()
+      getreport(item){
+        axios
+        .get('http://10.10.10.40:8083/api/sales/smi/sale/list?data='+item)
+        .then((res) => {
+          this.salesdialog = true;
+
+          console.log('✅ Response:', res.data);
+          this.sales = res.data
+        })
+        .catch((error) => {
+          console.error('❌ Error fetching data:', error);
+        });
+         
       },
       getAssessmentColor(assessment) {
         switch (assessment) {
@@ -493,7 +562,7 @@
         .catch((error) => {
           console.error('❌ Error fetching data:', error);
         });
-
+         
         axios
         .get('http://10.10.10.40:8083/api/sales/smi/branch')
         .then((res) => {
@@ -526,4 +595,10 @@
     
   };
   </script>
+  <style scoped>
+  .v-toolbar-title {
+    font-weight: bold;
+    font-size: 20px;
+  }
+  </style>
   
