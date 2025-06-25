@@ -14,6 +14,10 @@
             <h2>📊 Dashboard</h2>
             <p>Performance overview and analytics.</p>
           </v-card>
+          <div class="p-4">
+          <h2 class="text-xl font-bold mb-4">Quarterly Sales Performance</h2>
+          <canvas ref="chartCanvas"></canvas>
+        </div>
         </v-tab-item>
   
         <!-- Employees with Sales Employee Table -->
@@ -190,7 +194,8 @@
               <v-btn color="success" class="mt-3" block @click="generateReport" :loading="loading">
                 <v-icon left>mdi-play</v-icon> Generate Report
               </v-btn>
-              
+              <v-divider class="my-4"></v-divider>
+              <strong v-if="download_link">Download:</strong><a :href="download_link" target="_blank">  {{filename}}</a>
               <v-divider class="my-4"></v-divider>
           
               <!-- Data Table -->
@@ -287,9 +292,31 @@
   import * as XLSX from 'xlsx';
   import { saveAs } from 'file-saver';
   import axios from 'axios';
+ // import { onMounted } from 'vue'
+  import { Chart } from 'chart.js/auto'
+   
+ 
   export default {
     data() {
       return {
+
+        rawData: [
+        [
+          { branch: 'AGOO', solver: '39.61%' },
+          { branch: 'AGOO', solver: '35.15%' }
+        ],
+        [
+          { branch: 'ALAMINOS', solver: '59.5%' },
+          { branch: 'ALAMINOS', solver: '46.78%' }
+        ],
+        [
+          { branch: 'APALIT', solver: '69.16%' },
+          { branch: 'APALIT', solver: '67.25%' }
+        ]
+        // Add more as needed
+        ],
+        filename: '',
+        download_link: '',
         search: '',
         salesdialog: false,
         sales: [  {
@@ -454,6 +481,8 @@
         });
         
         this.reportData = res.data.reports;
+        this.download_link = res.data.download_link
+        this.filename = res.data.filename
         this.loading = false
       } catch (err) {
         console.error("Error fetching report:", err);
@@ -544,6 +573,51 @@
     }
     },
     mounted() {
+      //###GRAPH
+
+      const labels = this.rawData.map(b => b[0].branch)
+    const q1 = this.rawData.map(b =>
+      parseFloat(b[0].solver.replace('%', ''))
+    )
+    const q2 = this.rawData.map(b =>
+      parseFloat(b[1].solver.replace('%', ''))
+    )
+
+    new Chart(this.$refs.chartCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Q1 2025',
+            data: q1,
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          },
+          {
+            label: 'Q2 2025',
+            data: q2,
+            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Sales Performance by Branch'
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: val => val + '%'
+            }
+          }
+        }
+      }
+    })
       axios
         .get('http://10.10.10.40:8083/api/sales/smi/index')
         .then((res) => {
