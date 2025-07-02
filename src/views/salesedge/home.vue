@@ -99,7 +99,7 @@
             v-if="pagination.last_page > 1"
             v-model="currentPage"
             :length="pagination.last_page"
-            @input="fetchSalesEmployees"
+            @input="fetchSales"
             color="primary"
             class="mt-4 pb-2"
           />
@@ -656,6 +656,9 @@ import { computed } from 'vue';
     }
     },
     mounted() {
+      axios.get('http://10.10.10.40:8083/api/sales/smi/graph').then((res)=>{
+          this.imageUrl = res.data
+      })
       axios.post('http://10.10.10.40:8083/api/auth/permissions')
       .then((res) => {
         this.roles = res.data
@@ -686,7 +689,7 @@ import { computed } from 'vue';
         .then((res) => {
             
             this.branches = []
-            this.branches.push('ALL') 
+        
            res.data.forEach((i,s) => {
                  this.branches.push(i.Branch) 
            });

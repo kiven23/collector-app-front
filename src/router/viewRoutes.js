@@ -94,7 +94,7 @@ import salesedge from "../views/salesedge/home.vue";
 const viewRoutes = [
   {
     path: "/",
-    component: Home,
+    component: salesedge,
     name: "home",
     meta: {
       requiresAuth: true
