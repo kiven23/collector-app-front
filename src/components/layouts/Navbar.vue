@@ -11,9 +11,11 @@
         <v-list-item-avatar size="64">
           <v-img src="https://via.placeholder.com/150/FFFFFF/000000?text=JD"></v-img> </v-list-item-avatar>
         <v-list-item-content>
-          <v-list-item-title class="user-name text-h6 font-weight-bold">
-            {{ currentUser.first_name }}&nbsp;{{ currentUser.last_name }}
+          <v-list-item-title class="user-name text-body-2 font-weight-medium">
+           {{ currentUser.last_name }}
+  
           </v-list-item-title>
+
           <v-list-item-subtitle class="user-position mt-1">
             {{
               currentUser.employment && currentUser.employment.position

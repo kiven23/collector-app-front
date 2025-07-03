@@ -7,6 +7,10 @@
       <v-tab key="employees">
         <v-icon left>mdi-account-group</v-icon>Employees
       </v-tab>
+      
+      <v-tab key="approved"  >
+        <v-icon left>mdi-download</v-icon>Approved Product Bonus
+      </v-tab>
       <v-tab key="sales" v-if="sales_upload_product" >
         <v-icon left>mdi-shopping</v-icon>Product Maintenance
       </v-tab>
@@ -105,7 +109,68 @@
           />
         </v-card>
       </v-tab-item>
+      <v-tab-item key="approved" class="pa-4">
+        <v-card class="elevation-2 pa-4 mb-6 approved-bonus-card">
+          <h2 class="text-h5 font-weight-bold primary--text mb-2">
+            ✅ Sales Approved Product Bonus
+          </h2>
+          <p class="subtitle-1 grey--text text--darken-1">
+            View and download the latest approved product bonus details.
+          </p>
+        </v-card>
 
+        <v-card class="elevation-5 data-table-card">
+          <v-toolbar flat class="table-toolbar">
+            <v-toolbar-title class="font-weight-bold text-subtitle-1"
+              >Approved Bonus List</v-toolbar-title
+            >
+            <v-spacer></v-spacer>
+            <v-text-field
+              v-model="approvedBonusSearch"
+              append-icon="mdi-magnify"
+              label="Search Approved Bonuses"
+              single-line
+              hide-details
+              clearable
+              dense
+              class="search-field"
+            ></v-text-field>
+            <v-btn
+              color="primary"
+              dark
+              class="ml-4 download-pdf-btn"
+              @click="downloadApprovedBonusPdf"
+              :disabled="!approvedBonusPdfUrl"
+            >
+              <v-icon left>mdi-file-pdf-box</v-icon> Download PDF
+            </v-btn>
+          </v-toolbar>
+
+          <v-data-table
+            :headers="approvedBonusHeaders"
+            :items="approvedBonuses"
+            class="approved-bonus-table"
+            dense
+            hide-default-footer
+          >
+            <template v-slot:item.bonus_amount="{ item }">
+              <v-chip color="green lighten-4" text-color="green darken-4" small label>
+                ₱ {{ parseFloat(item.bonus_amount).toLocaleString() }}
+              </v-chip>
+            </template>
+             <template v-slot:item.as_of_date="{ item }">
+              <v-chip color="blue-grey lighten-5" text-color="blue-grey darken-4" small label>
+                {{ item.as_of_date ? item.as_of_date : 'N/A' }}
+              </v-chip>
+            </template>
+            <template v-slot:item.Download="{ item }">
+              <v-chip color="blue-grey lighten-5" text-color="blue-grey darken-4" small label>
+                 <a :href="item.url">Download</a>
+              </v-chip>
+            </template>
+          </v-data-table>
+        </v-card>
+      </v-tab-item>
       <v-tab-item key="sales" class="pa-4">
         <v-card class="elevation-2 pa-4 mb-6 product-card">
           <h2 class="text-h5 font-weight-bold primary--text mb-2">📦 Product Maintenance</h2>
@@ -149,6 +214,13 @@
           </v-data-table>
         </v-card>
       </v-tab-item>
+
+
+       
+
+
+
+      
     </v-tabs-items>
 
     <v-dialog v-model="showModal" max-width="1200px">
@@ -193,6 +265,7 @@
                 dense
                 hide-details
                 color="primary"
+                @change="check()"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="6">
@@ -215,6 +288,7 @@
                     outlined
                     dense
                     hide-details
+                    @change="check()"
                     color="primary"
                   />
                 </template>
@@ -242,6 +316,7 @@
                     dense
                     hide-details
                     color="primary"
+                    @change="check()"
                   />
                 </template>
                 <v-date-picker v-model="form.endDate" @input="toMenu = false" color="primary"></v-date-picker>
@@ -253,11 +328,23 @@
             color="primary"
             class="mt-6 generate-btn"
             block
-            @click="generateReport"
+            @click="generateReport(0)"
             :loading="loading"
             large
           >
             <v-icon left>mdi-play-circle</v-icon> Generate Report
+          </v-btn>
+          <v-btn
+          v-if="sales_approved_bonus"
+            color="success"
+            class="mt-6 generate-btn"
+            block
+            @click="generateReport(1)"
+            :loading="loading"
+            large
+            :disabled="approved"
+          >
+            <v-icon left>mdi-play-circle</v-icon> APPROVED
           </v-btn>
 
           <v-divider class="my-6 divider"></v-divider>
@@ -378,6 +465,15 @@ import { computed } from 'vue';
   export default {
     data() {
       return {
+        approved: false,
+        approvedBonusSearch: '',
+        approvedBonuses: [],  
+        approvedBonusHeaders: [
+        { text: 'Branch', value: 'branch' },
+        { text: 'DocName', value: 'docname' },
+        { text: 'As Of Date', value: 'as_of_date' },
+        { text: 'Download', value: 'Download' }
+        ],
         roles: [],
         imageUrl:
         "https://cdn-sfx-linux-file-distribution-network-zone9-node8.addessa.com/download/graph?q=sales_performance_chart-ALL-2025-06-26.png&session=None",
@@ -473,21 +569,39 @@ import { computed } from 'vue';
       sales_upload_product(){
         return this.roles.includes('Sales Upload Product');
       },
+      sales_approved_bonus(){
+        return this.roles.includes('Sales Approved Bonus');
+      },
     },
     methods: {
+     
+      check(){
+        axios
+        .get('http://10.10.10.40:8083/api/sales/smi/check?start_date='+this.form.startDate+'&end_date='+this.form.endDate+'&q=1&branch='+this.selectedBranch)
+        .then((res) => {
+           if(res.data > 0){
+              this.loading = false
+              this.approved = true
+              return this.approved
+           }else{
+            this.approved = false
+           }
+          
+        })
+        .catch((error) => {
+          console.error('❌ Error fetching data:', error);
+        });
+      },
       getreport(item){
         axios
         .get('http://10.10.10.40:8083/api/sales/smi/sale/list?data='+item)
         .then((res) => {
           this.salesdialog = true;
-
-          console.log('✅ Response:', res.data);
           this.sales = res.data
         })
         .catch((error) => {
           console.error('❌ Error fetching data:', error);
         });
-         
       },
       getAssessmentColor(assessment) {
         switch (assessment) {
@@ -516,7 +630,7 @@ import { computed } from 'vue';
           };
         });
     },
-    async generateReport() {
+    async generateReport(i) {
       var identify;
       if (!this.form.startDate || !this.form.endDate) {
         alert("Please select a date range.");
@@ -550,11 +664,20 @@ import { computed } from 'vue';
             { text: "Product Bonus Total", value: "product_bonus_total" },
             { text: "Received by/Date:", value: "received" },
            ]
+      } 
+      var ind ;
+      if(i == 0){
+        ind = 'generator';
+      }else{ 
+        ind = 'approved';
+        if(this.check()){
+          return;
+        }
       }
 
       try {
         this.loading = true
-        const res = await axios.get("http://10.10.10.40:8083/api/sales/smi/generator", {
+        const res = await axios.get("http://10.10.10.40:8083/api/sales/smi/"+ind, {
           params: {
             start_date: this.form.startDate,
             end_date: this.form.endDate,
@@ -562,11 +685,16 @@ import { computed } from 'vue';
             branch: this.selectedBranch
           },
         });
-        
-        this.reportData = res.data.reports;
+        if(i == 1){
+          this.loading = false
+          alert('Approved')
+        }else{
+          this.reportData = res.data.reports;
         this.download_link = res.data.download_link
         this.filename = res.data.filename
         this.loading = false
+        }
+         
       } catch (err) {
         console.error("Error fetching report:", err);
       }
@@ -656,6 +784,10 @@ import { computed } from 'vue';
     }
     },
     mounted() {
+ 
+      axios.get('http://10.10.10.40:8083/api/sales/smi/getbonus').then((res)=>{
+          this.approvedBonuses = res.data
+      })
       axios.get('http://10.10.10.40:8083/api/sales/smi/graph').then((res)=>{
           this.imageUrl = res.data
       })
