@@ -165,7 +165,7 @@
             </template>
             <template v-slot:item.Download="{ item }">
               <v-chip color="blue-grey lighten-5" text-color="blue-grey darken-4" small label>
-                 <a :href="item.url">Download</a>
+                 <a :href="item.url" target="_Blank">Download</a>
               </v-chip>
             </template>
           </v-data-table>
@@ -334,6 +334,10 @@
           >
             <v-icon left>mdi-play-circle</v-icon> Generate Report
           </v-btn>
+ 
+          <div v-if="reportType == 'Product Bonus'">
+   
+          <div v-if="reportData.length "> 
           <v-btn
           v-if="sales_approved_bonus"
             color="success"
@@ -346,7 +350,8 @@
           >
             <v-icon left>mdi-play-circle</v-icon> APPROVED
           </v-btn>
-
+        </div>
+        </div>
           <v-divider class="my-6 divider"></v-divider>
 
           <div v-if="download_link" class="mb-4">
@@ -459,6 +464,7 @@
   import { saveAs } from 'file-saver';
   import axios from 'axios';
 import { computed } from 'vue';
+import rootUrl from '../../rootUrl';
  
    
  
@@ -577,7 +583,7 @@ import { computed } from 'vue';
      
       check(){
         axios
-        .get('http://10.10.10.40:8083/api/sales/smi/check?start_date='+this.form.startDate+'&end_date='+this.form.endDate+'&q=1&branch='+this.selectedBranch)
+        .get(rootUrl+'/api/sales/smi/check?start_date='+this.form.startDate+'&end_date='+this.form.endDate+'&q=1&branch='+this.selectedBranch)
         .then((res) => {
            if(res.data > 0){
               this.loading = false
@@ -594,7 +600,7 @@ import { computed } from 'vue';
       },
       getreport(item){
         axios
-        .get('http://10.10.10.40:8083/api/sales/smi/sale/list?data='+item)
+        .get(rootUrl+'/api/sales/smi/sale/list?data='+item)
         .then((res) => {
           this.salesdialog = true;
           this.sales = res.data
@@ -618,7 +624,7 @@ import { computed } from 'vue';
         }
       },
       fetchSales(page = 1) {
-         axios.get(`http://10.10.10.40:8083/api/sales/smi/index?page=${page}`).then((res) => {
+         axios.get(rootUrl+`/api/sales/smi/index?page=${page}`).then((res) => {
           this.salesEmployees = res.data.data;
           this.pagination = {
             total: res.data.total,
@@ -677,7 +683,7 @@ import { computed } from 'vue';
 
       try {
         this.loading = true
-        const res = await axios.get("http://10.10.10.40:8083/api/sales/smi/"+ind, {
+        const res = await axios.get(rootUrl+"/api/sales/smi/"+ind, {
           params: {
             start_date: this.form.startDate,
             end_date: this.form.endDate,
@@ -768,7 +774,7 @@ import { computed } from 'vue';
       const formData = new FormData();
       formData.append("file", this.file);
 
-       axios.post("http://10.10.10.40:8083/api/sales/smi/upload-product-bonus", formData, {
+       axios.post(rootUrl+"/api/sales/smi/upload-product-bonus", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       })
       .then(() => {
@@ -785,20 +791,20 @@ import { computed } from 'vue';
     },
     mounted() {
  
-      axios.get('http://10.10.10.40:8083/api/sales/smi/getbonus').then((res)=>{
+      axios.get(rootUrl+'/api/sales/smi/getbonus').then((res)=>{
           this.approvedBonuses = res.data
       })
-      axios.get('http://10.10.10.40:8083/api/sales/smi/graph').then((res)=>{
+      axios.get(rootUrl+'/api/sales/smi/graph').then((res)=>{
           this.imageUrl = res.data
       })
-      axios.post('http://10.10.10.40:8083/api/auth/permissions')
+      axios.post(rootUrl+'/api/auth/permissions')
       .then((res) => {
         this.roles = res.data
         console.log(this.roles)
       });
 
       axios
-        .get('http://10.10.10.40:8083/api/sales/smi/index')
+        .get(rootUrl+'/api/sales/smi/index')
         .then((res) => {
      
           this.salesEmployees = res.data.data
@@ -817,7 +823,7 @@ import { computed } from 'vue';
         });
          
         axios
-        .get('http://10.10.10.40:8083/api/sales/smi/branch')
+        .get(rootUrl+'/api/sales/smi/branch')
         .then((res) => {
             
             this.branches = []
@@ -832,7 +838,7 @@ import { computed } from 'vue';
         });
 
         axios
-        .get('http://10.10.10.40:8083/api/sales/smi/items')
+        .get(rootUrl+'/api/sales/smi/items')
         .then((res) => {
        
           this.products = res.data
