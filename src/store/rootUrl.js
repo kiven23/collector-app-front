@@ -1,3 +1,3 @@
-const rootUrl = "http://10.10.10.40:8083";
+const rootUrl = "https://api-sales-edge.addessa.com";
 
 export default rootUrl;

@@ -5,7 +5,7 @@ export function login(credentials) {
   return new Promise((res, rej) => {
     axios
       .post(
-        "http://10.10.10.40:8083/api/auth/login",
+        "https://api-sales-edge.addessa.com/api/auth/login",
         credentials
       )
       .then(response => {
