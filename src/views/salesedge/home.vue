@@ -73,7 +73,8 @@
             dense
             :page.sync="currentPage"
             :items-per-page="pagination.per_page"
-            hide-default-footer
+          
+            
           >
             <template v-slot:item.performance_assessment="{ item }">
               <v-chip
@@ -151,7 +152,7 @@
             :items="approvedBonuses"
             class="approved-bonus-table"
             dense
-            hide-default-footer
+           
           >
             <template v-slot:item.bonus_amount="{ item }">
               <v-chip color="green lighten-4" text-color="green darken-4" small label>
@@ -204,7 +205,8 @@
             :items="products"
             class="product-table"
             dense
-            hide-default-footer
+        
+            
           >
             <template v-slot:item.product_bonus="{ item }">
               <v-chip color="green lighten-4" text-color="green darken-4" small label>
@@ -769,6 +771,7 @@ import rootUrl from '../../rootUrl';
       saveAs(blob, "product_bonus_templates.xlsx");
     },
     uploadFile() {
+      this.loading = true
       if (!this.file) return;
 
       const formData = new FormData();
@@ -778,15 +781,27 @@ import rootUrl from '../../rootUrl';
         headers: { "Content-Type": "multipart/form-data" }
       })
       .then(() => {
-        this.$emit("uploaded");
+        this.loading = false
+        //this.$emit("uploaded");
         this.dialogProductBonus = false;
         this.file = null;
-       
+        this.productgetters()
       })
       .catch((err) => {
         console.error(err);
         this.$toast.error("Upload failed");
       });
+    },
+    productgetters(){
+      axios
+        .get(rootUrl+'/api/sales/smi/items')
+        .then((res) => {
+          this.products = res.data
+           
+        })
+        .catch((error) => {
+          console.error('❌ Error fetching data:', error);
+        });
     }
     },
     mounted() {
@@ -837,17 +852,7 @@ import rootUrl from '../../rootUrl';
           console.error('❌ Error fetching data:', error);
         });
 
-        axios
-        .get(rootUrl+'/api/sales/smi/items')
-        .then((res) => {
-       
-          this.products = res.data
- 
-           
-        })
-        .catch((error) => {
-          console.error('❌ Error fetching data:', error);
-        });
+        this.productgetters();
     }
 
 
