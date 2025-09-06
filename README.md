@@ -42,3 +42,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 2. pkill http-server
 # app-basement-frontend
 # sales
+# collector-app-front

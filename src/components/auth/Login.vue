@@ -1,65 +1,65 @@
 <template>
   <v-container fluid fill-height class="login-background">
+    <div class="background-glow"></div>
     <v-layout align-center justify-center>
       <v-flex xs12 sm8 md5>
-        <v-card class="elevation-12 pa-4 login-card">
-          <v-toolbar flat color="transparent" class="login-toolbar">
-            <v-img
-              src="/logo3.png"
-              max-width="120"
-              max-height="120"
-              class="mx-auto custom-logo"
-            ></v-img>
-          </v-toolbar>
-          <v-card-title class="justify-center primary--text text-h5 font-weight-bold mt-7">
-            Reports System
-   
-          </v-card-title>
+        <v-card class="dark-card pa-10 rounded-xl elevation-20 animate__animated animate__zoomIn">
+          
+          <div class="text-center mb-6">
+            <v-avatar size="100" class="logo-glow mb-4">
+              <v-img src="/collection.png"></v-img>
+            </v-avatar>
+            <h1 class="text-h4 font-weight-bold primary--text mb-2">
+              Customer Collection System
+            </h1>
+            <p class="white--text text-subtitle-1 font-weight-light">
+              Log in to your account
+            </p>
+          </div>
 
-          <v-card-text>
-            <v-form class="login-form">
-              <v-text-field
-                class="custom-input mb-6"
-                autofocus
-                prepend-inner-icon="mdi-account-circle"
-                v-model="form.email"
-                label="Username"
-                type="text"
-                outlined
-                rounded
-                dense
-                @keydown.enter="authenticate"
-              ></v-text-field>
-
-              <v-text-field
-                class="custom-input"
-                prepend-inner-icon="mdi-lock"
-                v-model="form.password"
-                label="Password"
-                type="password"
-                outlined
-                rounded
-                dense
-                @keydown.enter="authenticate"
-              ></v-text-field>
-            </v-form>
-          </v-card-text>
-
-          <v-card-actions class="px-4 pb-4">
-            <v-spacer></v-spacer>
-            <v-btn
-              color="primary"
-              dark
-              large
+          <v-form>
+            <v-text-field
+              class="mb-4 dark-input"
+              prepend-inner-icon="mdi-account"
+              v-model="form.email"
+              label="Username"
+              type="text"
+              solo
+              flat
               rounded
-              @click="authenticate"
-              :loading="loadingStatus"
-              class="login-button"
-            >
-              Login
-              <v-icon right>mdi-login</v-icon>
-            </v-btn>
-          </v-card-actions>
+              dark
+            ></v-text-field>
+
+            <v-text-field
+              class="dark-input"
+              prepend-inner-icon="mdi-lock"
+              v-model="form.password"
+              label="Password"
+              type="password"
+              solo
+              flat
+              rounded
+              dark
+              @keydown.enter="authenticate"
+            ></v-text-field>
+          </v-form>
+
+          <v-btn
+            block
+            color="primary"
+            x-large
+            rounded
+            @click="authenticate"
+            :loading="loadingStatus"
+            class="login-button mt-6 font-weight-bold text-capitalize"
+          >
+            Sign In
+            <v-icon right>mdi-arrow-right</v-icon>
+          </v-btn>
+
+          <div class="text-center mt-6">
+            <a href="#" class="primary--text text-decoration-none font-weight-medium">Forgot Password?</a>
+          </div>
         </v-card>
       </v-flex>
     </v-layout>
@@ -67,10 +67,11 @@
 </template>
 
 <script>
-import { login } from "../../helpers/auth";
+// Make sure your path is correct
+import { login } from "../../helpers/auth"; 
 
 export default {
-  name: "login",
+  name: "Login",
   data() {
     return {
       form: {
@@ -108,79 +109,76 @@ export default {
 </script>
 
 <style scoped>
+/* Main Dark Background */
 .login-background {
-  background: linear-gradient(to right, #4facfe, #00f2fe); /* Softer, modern gradient */
-  background-size: cover;
-  display: flex; /* Use flexbox for centering */
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
+  height: 100vh;
+  width: 100vw;
+  background-color: #121212;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-card {
-  background-color: rgba(255, 255, 255, 0.95); /* Slightly less transparent white */
-  border-radius: 15px; /* More pronounced rounded corners */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
-  overflow: hidden; /* Ensures content stays within rounded corners */
+/* Subtle background glow effect */
+.background-glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% -20%, #4a2373, #121212 50%);
+  opacity: 0.6;
 }
 
-.login-toolbar {
-  background-color: transparent !important; /* Make toolbar transparent */
-  padding-top: 20px; /* Add some space above the logo */
+/* Dark Card with soft shadows */
+.dark-card {
+  background-color: #1a1a1a !important;
+  border: 1px solid #333;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 40px #673ab7; /* Glow effect */
 }
 
-.custom-logo {
-  border-radius: 50%; /* Make the logo round */
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow for the logo */
-  border: 3px solid #1976D2; /* Add a border to the logo */
+/* Dark Inputs with soft glow */
+.dark-input.v-text-field--solo .v-input__control .v-input__slot {
+  background-color: #2c2c2c !important;
+  box-shadow: none !important;
 }
 
-.logo-underline {
-  display: block; /* Change to block to take full width of parent */
-  width: 50px; /* Adjust width as needed */
-  height: 4px; /* Thicker underline */
-  background-color: #1976D2; /* Primary color */
-  margin: 8px auto 0 auto; /* Center the underline and add margin */
-  border-radius: 2px;
+.dark-input.v-input--is-focused .v-input__control .v-input__slot {
+  box-shadow: 0 0 5px #673ab7 !important;
 }
 
-.login-form {
-  padding: 20px; /* More padding */
-  background: none; /* Remove background from form to let card background show */
-  box-shadow: none; /* Remove shadow from form */
+.dark-input >>> .v-icon,
+.dark-input >>> .v-label {
+  color: #a3a3a3 !important;
 }
 
-.custom-input .v-label {
-  font-weight: 500; /* Slightly less bold for subtlety */
-  color: #3f51b5 !important; /* Deeper blue for labels */
-  font-size: 1rem; /* Standard font size */
+.dark-input.v-input--is-focused .v-icon {
+  color: #673ab7 !important;
 }
 
-.custom-input input {
-  font-size: 1.1rem; /* Slightly larger input text */
-  font-weight: 500;
-  color: #2c3e50; /* Darker, more professional text color */
-  letter-spacing: 0.2px;
+.dark-input >>> input {
+  color: white !important;
 }
 
-.custom-input .v-input__control {
-  border-radius: 10px; /* More rounded input fields */
-  background-color: #f8f9fa; /* Off-white background for inputs */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Softer shadow */
-  padding-left: 10px; /* More padding inside input */
-}
-
-.custom-input .v-icon {
-  color: #007bff; /* A more vibrant blue for icons */
-}
-
+/* Login Button with glow */
 .login-button {
-  letter-spacing: 1px;
-  font-weight: bold;
-  transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+  transition: all 0.3s ease-in-out;
+  background-color: #673ab7 !important; /* A striking purple */
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(103, 58, 183, 0.4);
 }
 
 .login-button:hover {
-  transform: translateY(-2px); /* Slight lift on hover */
-  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4); /* Blue shadow on hover */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(103, 58, 183, 0.6);
+}
+
+/* Other Custom Styles */
+.primary--text {
+  color: #673ab7 !important;
+}
+
+.logo-glow {
+  box-shadow: 0 0 10px #673ab7, 0 0 20px rgba(103, 58, 183, 0.4);
 }
 </style>

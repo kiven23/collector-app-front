@@ -1,57 +1,29 @@
-<!-- <template>
-  <footer>
-    <v-footer app style="background-color: #2596be; ">
-      <v-card class="flex" flat >
-        <v-card-actions class="justify-center">
-          &copy;&nbsp;{{ new Date().getFullYear() }} —
-          <strong>&nbsp;SalesEdge Addessa Corporation</strong>
-        </v-card-actions>
-      </v-card>
-    </v-footer>
-  </footer>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      icons: [
-        "fab fa-facebook",
-        "fab fa-twitter",
-        "fab fa-google-plus",
-        "fab fa-linkedin",
-        "fab fa-instagram"
-      ]
-    };
-  }
-};
-</script> -->
 <template>
-  <v-footer app class="sales-edge-footer py-6">
-    <v-container>
-      <v-row align="center" justify="space-between">
-        <v-col cols="12" md="6" class="text-center text-md-left footer-text">
-          &copy; {{ new Date().getFullYear() }} —
-          <strong class="font-weight-bold">SalesEdge Addessa Corporation</strong>
-          <span class="d-block d-md-inline mt-1 mt-md-0"> All rights reserved.</span>
+  <v-footer app class="app-footer-unique py-0">
+    <v-container fluid class="pa-0">
+      <v-row no-gutters class="footer-row">
+        <v-col cols="12" md="6" class="footer-left pa-6 d-flex align-center justify-center justify-md-start">
+          <div class="text-center text-md-left">
+            <h3 class="white--text text-h6 font-weight-bold mb-2">
+              Customer Collection Tracker
+            </h3>
+            <p class="grey--text text--lighten-2 text-caption mb-0">
+              &copy; {{ new Date().getFullYear() }} All rights reserved.
+            </p>
+          </div>
         </v-col>
 
-        <!-- <v-col cols="12" md="6" class="text-center text-md-right">
-          <v-btn
-            v-for="icon in icons"
-            :key="icon"
-            icon
-            size="large"
-            variant="flat"
-            class="mx-2 social-icon-button"
-            color="white"
-            :href="getIconLink(icon)"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <v-icon :icon="icon" size="24"></v-icon>
-          </v-btn>
-        </v-col> -->
+        <v-col cols="12" md="6" class="footer-right pa-6 d-flex align-center justify-center justify-md-end">
+          <div class="text-center text-md-right">
+            <p class="white--text text-subtitle-2 font-weight-medium mb-1">
+              Urdaneta City, Ilocos Region, Philippines
+            </p>
+            <p class="grey--text text--lighten-2 text-caption mb-0">
+              <v-icon small color="primary" class="mr-1">mdi-phone</v-icon> +63 9XX XXX XXXX |
+              <v-icon small color="primary" class="ml-2 mr-1">mdi-email</v-icon> info@yourcompany.com
+            </p>
+          </div>
+        </v-col>
       </v-row>
     </v-container>
   </v-footer>
@@ -59,83 +31,54 @@ export default {
 
 <script>
 export default {
-  data() {
-    return {
-      icons: [
-        "fab fa-facebook-f",
-        "fab fa-twitter",
-        "fab fa-linkedin-in",
-        "fab fa-instagram",
-        "fab fa-youtube" // Added YouTube for more options
-      ]
-    };
-  },
-  methods: {
-    getIconLink(icon) {
-      const links = {
-        "fab fa-facebook-f": "https://facebook.com/yourcompany", // Replace with actual links
-        "fab fa-twitter": "https://twitter.com/yourcompany",
-        "fab fa-linkedin-in": "https://linkedin.com/company/yourcompany",
-        "fab fa-instagram": "https://instagram.com/yourcompany",
-        "fab fa-youtube": "https://youtube.com/yourchannel"
-      };
-      return links[icon] || "#";
-    }
-  }
+  // No script changes needed for this footer
 };
 </script>
 
 ---
 
-### **Styling Enhancements**
+### **Styling for Unique Footer**
 
 ```css
 <style scoped>
-.sales-edge-footer {
-  background: linear-gradient(to right, #1a237e, #283593); /* Darker, more professional gradient */
-  color: #e3f2fd; /* Lighter text color for contrast */
-  font-family: 'Roboto', sans-serif; /* A commonly preferred modern font */
-  padding-top: 24px;
-  padding-bottom: 24px;
+.app-footer-unique {
+  background-color: #121212 !important; /* Main dark background */
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.5); /* Stronger shadow for depth */
 }
 
-.footer-text {
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: #bbdefb; /* Slightly muted text color for less emphasis on secondary text */
+.footer-row {
+  min-height: 80px; /* Set a minimum height for the footer */
 }
 
-.footer-text strong {
-  color: #ffffff; /* Pure white for the main company name */
+.footer-left {
+  background-color: #1a1a1a; /* Slightly lighter dark for the left section */
+  border-right: 1px solid #2c2c2c; /* Subtle divider */
 }
 
-.social-icon-button {
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
-  background-color: rgba(255, 255, 255, 0.1) !important; /* Subtle initial background */
-  border-radius: 50%; /* Ensure perfect circle for buttons */
-}
-
-.social-icon-button:hover {
-  background-color: rgba(255, 255, 255, 0.3) !important; /* Brighter background on hover */
-  transform: translateY(-3px); /* Lift effect on hover */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Soft shadow on hover */
-}
-
-.v-icon {
-  color: inherit !important; /* Ensures icon color matches button's text color property */
+.footer-right {
+  background-color: #1a1a1a; /* Consistent with left section */
 }
 
 /* Responsive adjustments for smaller screens */
 @media (max-width: 959px) {
-  .sales-edge-footer {
-    padding-top: 20px;
-    padding-bottom: 20px;
+  .footer-left, .footer-right {
+    border-right: none; /* Remove border on mobile */
+    border-bottom: 1px solid #2c2c2c; /* Add bottom border between sections on mobile */
   }
-  .footer-text {
-    margin-bottom: 15px; /* Add some space between copyright and icons on small screens */
+  .footer-right {
+    border-bottom: none; /* No bottom border on the last section */
   }
-  .social-icon-button {
-    margin: 0 8px; /* Adjust margin for social icons on small screens */
-  }
+}
+
+.white--text {
+  color: #ffffff !important;
+}
+
+.grey--text.text--lighten-2 {
+  color: #b0b0b0 !important;
+}
+
+.primary--text {
+  color: #673ab7 !important; /* Our deep purple accent */
 }
 </style>

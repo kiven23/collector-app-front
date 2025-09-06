@@ -87,14 +87,15 @@ import databaseconfigure from "../views/settings/database/configure.vue";
 
 //SALESEDGE
  
-import salesedge from "../views/salesedge/home.vue";
+import collection from "../views/collection/home.vue";
+import collected from "../views/collection/collected.vue";
 
 
 
 const viewRoutes = [
   {
     path: "/",
-    component: salesedge,
+    component: collection,
     name: "home",
     meta: {
       requiresAuth: true
@@ -487,8 +488,16 @@ const viewRoutes = [
 
   //SALES EDGE
   {
-    path: "/sales/smi/",
-    component: salesedge,
+    path: "/collection/index/",
+    component: collection,
+    name: "configure",
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/collection/collected/",
+    component: collected,
     name: "configure",
     meta: {
       requiresAuth: true
