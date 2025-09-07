@@ -44,12 +44,12 @@
               <v-list-item-content>
                 <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center">
                   <div class="d-flex flex-column mb-2 mb-md-0">
-                    <div class="white--text font-weight-bold text-subtitle-1">{{ customer.cardname }}</div>
-                    <div class="grey--text text-caption">{{ customer.cardcode }} - {{ customer.branch }}</div>
+                    <div class="white--text font-weight-bold text-subtitle-1">{{ customer.CardName }}</div>
+                    <div class="grey--text text-caption">{{ customer.CardCode }} - {{ customer.Branch }}</div>
                   </div>
                   <div class="d-flex flex-row align-center">
                     <div class="text-right mr-4">
-                      <div class="primary--text text-subtitle-2 font-weight-bold">{{ formatCurrency(customer.overdueAmount) }}</div>
+                      <div class="primary--text text-subtitle-2 font-weight-bold">{{ formatCurrency(customer.OverDueAmt) }}</div>
                       <div class="grey--text text-caption">Due Today</div>
                     </div>
                   </div>
@@ -142,19 +142,19 @@
             <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center">
               <v-checkbox
                 v-model="selectedCustomers"
-                :value="customer.cardcode"
+                :value="customer.id"
                 color="primary"
                 hide-details
                 class="mt-0 pt-0 custom-checkbox"
                 :disabled="customer.status === 'Collected' || customer.status === 'Posted'"
               ></v-checkbox>
               <div class="d-flex flex-column mb-2 mb-md-0 ml-md-2">
-                <div class="white--text font-weight-bold text-subtitle-1">{{ customer.cardname }}</div>
-                <div class="grey--text text-caption">{{ customer.cardcode }} - {{ customer.branch }}</div>
+                <div class="white--text font-weight-bold text-subtitle-1">{{ customer.CardName }}</div>
+                <div class="grey--text text-caption">{{ customer.CardCode }} - {{ customer.Branch }}</div>
               </div>
               <div class="d-flex flex-row align-center">
                 <div class="text-right mr-4">
-                  <div class="primary--text text-subtitle-2 font-weight-bold">{{ formatCurrency(customer.overdueAmount) }}</div>
+                  <div class="primary--text text-subtitle-2 font-weight-bold">{{ formatCurrency(customer.OverDueAmt) }}</div>
                   <div class="grey--text text-caption">Overdue Amount</div>
                 </div>
                 <v-chip :color="getStatusColor(customer.status)" dark>{{ customer.status }}</v-chip>
@@ -171,12 +171,12 @@
     <v-dialog v-model="paymentModal" max-width="500px" dark>
       <v-card class="payment-modal-card">
         <v-card-title class="headline white--text">
-          Create Payment for {{ selectedCustomer.cardname }}
+          Create Payment for {{ selectedCustomer.CardName }}
         </v-card-title>
         <v-divider class="divider-line"></v-divider>
         <v-card-text>
           <div class="my-4">
-            <div class="text-subtitle-1 white--text">Overdue Amount: <strong class="primary--text">{{ formatCurrency(selectedCustomer.overdueAmount) }}</strong></div>
+            <div class="text-subtitle-1 white--text">Overdue Amount: <strong class="primary--text">{{ formatCurrency(selectedCustomer.OverDueAmt) }}</strong></div>
           </div>
         
           <v-text-field
@@ -260,6 +260,7 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon, Marker, LatLng, Polyline } from 'leaflet';
+import axios from "axios";
 
 // Fix for default Leaflet icon not appearing
 // Fix for default Leaflet icon not appearing in Webpack/Vue CLI
@@ -278,13 +279,13 @@ export default {
       isDrawing: false,
       search: '',
       customers: [
-        { cardcode: 'C001', cardname: 'Juan Dela Cruz', branch: 'Main', overdueAmount: 5000.00, status: 'Scheduled', collectionDate: null, arrived: false, trackingPath: [[15.975855447263744,120.5685852],[15.975811,120.5694385],[15.979233,120.5697085],[15.979403,120.5701215],[15.981394688604986, 120.57881989571538],[15.981791481891495, 120.57954220097754],[15.983364476115161, 120.58036769265361]] },
-        { cardcode: 'C002', cardname: 'Maria Santos', branch: 'North', overdueAmount: 0.00, status: 'Collected', collectionDate: null, arrived: false, trackingPath: [] },
-        { cardcode: 'C003', cardname: 'Pedro Reyes', branch: 'South', overdueAmount: 12500.50, status: 'Posted', collectionDate: null, arrived: false, trackingPath: [] },
-        { cardcode: 'C004', cardname: 'Anna Lim', branch: 'Main', overdueAmount: 300.00, status: 'Pending', collectionDate: null, arrived: false, trackingPath: [] },
-        { cardcode: 'C005', cardname: 'Crispin Basco', branch: 'North', overdueAmount: 0.00, status: 'Collected', collectionDate: null, arrived: false, trackingPath: [] },
-        { cardcode: 'C006', cardname: 'Elisa Cruz', branch: 'South', overdueAmount: 750.75, status: 'Posted', collectionDate: null, arrived: false, trackingPath: [] },
-        { cardcode: 'C007', cardname: 'Robert Go', branch: 'Main', overdueAmount: 2000.00, status: 'Pending', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C001', cardname: 'Juan Dela Cruz', branch: 'Main', overdueAmount: 5000.00, status: 'Scheduled', collectionDate: null, arrived: false, trackingPath: [[15.975855447263744,120.5685852],[15.975811,120.5694385],[15.979233,120.5697085],[15.979403,120.5701215],[15.981394688604986, 120.57881989571538],[15.981791481891495, 120.57954220097754],[15.983364476115161, 120.58036769265361]] },
+        // { cardcode: 'C002', cardname: 'Maria Santos', branch: 'North', overdueAmount: 0.00, status: 'Collected', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C003', cardname: 'Pedro Reyes', branch: 'South', overdueAmount: 12500.50, status: 'Posted', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C004', cardname: 'Anna Lim', branch: 'Main', overdueAmount: 300.00, status: 'Pending', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C005', cardname: 'Crispin Basco', branch: 'North', overdueAmount: 0.00, status: 'Collected', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C006', cardname: 'Elisa Cruz', branch: 'South', overdueAmount: 750.75, status: 'Posted', collectionDate: null, arrived: false, trackingPath: [] },
+        // { cardcode: 'C007', cardname: 'Robert Go', branch: 'Main', overdueAmount: 2000.00, status: 'Pending', collectionDate: null, arrived: false, trackingPath: [] },
       ],
       kpis: [
         { icon: 'mdi-chart-bar', title: 'Total Accounts', value: '1,250' },
@@ -343,6 +344,16 @@ export default {
       }
     },
   },
+  mounted() {  
+     axios.get('http://localhost:8000/api/collection/schedule/index')
+    .then(response => {
+      console.log('response from backend:', response.data);
+      this.customers = response.data.data
+    })
+    .catch(error => {
+      console.error('error from backend:', error);
+    });
+  },
   methods: {
     getStatusColor(status) {
       if (status === 'Scheduled') return '#42a5f5';
@@ -353,37 +364,45 @@ export default {
       return '#616161';
     },
     formatCurrency(amount) {
-      if (amount === null || amount === undefined) return '₱ 0.00';
-      return `₱ ${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-    },
+    if (amount === null || amount === undefined) return '₱ 0.00';
+    const num = Number(amount); // convert string to number
+    if (isNaN(num)) return '₱ 0.00';
+    return `₱ ${num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+  },
     scheduleSelected() {
       if (this.selectedCustomers.length === 0) return;
     
       const scheduledCount = this.selectedCustomers.length;
     
-      this.selectedCustomers.forEach(cardcode => {
-        const customer = this.customers.find(c => c.cardcode === cardcode);
+      this.selectedCustomers.forEach(id => {
+        const customer = this.customers.find(c => c.id === id);
         if (customer) {
           customer.status = 'Scheduled';
+           
         }
       });
-    
+       axios.post('http://localhost:8000/api/collection/schedule/set', {
+            data: this.selectedCustomers
+          })
+          .then(response => {
+            
+          })
       this.selectedCustomers = [];
       this.snackbar.message = `${scheduledCount} customer(s) have been scheduled for today.`;
       this.snackbar.show = true;
     },
     onArrived(customer) {
-      const customerIndex = this.customers.findIndex(c => c.cardcode === customer.cardcode);
+      const customerIndex = this.customers.findIndex(c => c.CardCode === customer.CardCode);
       if (customerIndex !== -1) {
         this.customers[customerIndex].arrived = true;
       }
-      this.snackbar.message = `Arrived at ${customer.cardname}'s location.`;
+      this.snackbar.message = `Arrived at ${customer.CardName}'s location.`;
       this.snackbar.color = 'info';
       this.snackbar.show = true;
     },
     openPaymentModal(customer) {
       this.selectedCustomer = { ...customer };
-      this.paymentAmount = customer.overdueAmount;
+      this.paymentAmount = customer.OverDueAmt;
       this.paymentModal = true;
       this.clearSignature();
     },
@@ -399,14 +418,14 @@ export default {
         return;
       }
     
-      const customerIndex = this.customers.findIndex(c => c.cardcode === this.selectedCustomer.cardcode);
+      const customerIndex = this.customers.findIndex(c => c.CardCode === this.selectedCustomer.CardCode);
       if (customerIndex !== -1) {
         this.customers[customerIndex].status = 'Collected';
-        this.customers[customerIndex].overdueAmount = 0;
+        this.customers[customerIndex].OverDueAmt = 0;
       }
     
       this.paymentModal = false;
-      this.snackbar.message = `Payment of ${this.formatCurrency(this.paymentAmount)} successfully collected from ${this.selectedCustomer.cardname}.`;
+      this.snackbar.message = `Payment of ${this.formatCurrency(this.paymentAmount)} successfully collected from ${this.selectedCustomer.CardName}.`;
       this.snackbar.color = 'success';
       this.snackbar.show = true;
     },
