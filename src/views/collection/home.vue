@@ -68,7 +68,7 @@
                 </v-btn>
               </v-list-item-action>
 
-              <v-list-item-action v-if="customer.arrived">
+              <v-list-item-action v-if="customer.arrived == 1">
                 <v-btn
                   icon
                   color="primary"
@@ -137,7 +137,7 @@
       <v-divider class="divider-line"></v-divider>
     
       <v-list dark class="pa-0 data-list">
-        <v-list-item v-for="(customer, index) in filteredCustomers" :key="index" class="customer-list-item">
+        <v-list-item v-for="customer in paginatedCustomers" :key="customer.id" class="customer-list-item">
           <v-list-item-content>
             <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center">
               <v-checkbox
@@ -162,10 +162,17 @@
             </div>
           </v-list-item-content>
         </v-list-item>
-        <div v-if="!filteredCustomers.length" class="pa-4 text-center grey--text">
-          No matching customers found.
+        <div v-if="!customers.length" class="pa-4 text-center grey--text">
+          No customers found.
         </div>
       </v-list>
+      <v-pagination
+        v-model="page"
+        :length="totalPages"
+        :total-visible="7"
+        color="primary"
+        class="mt-4"
+      ></v-pagination>
     </v-card>
 
     <v-dialog v-model="paymentModal" max-width="500px" dark>
@@ -253,6 +260,71 @@
     <v-snackbar v-model="snackbar.show" :timeout="snackbar.timeout" :color="snackbar.color" bottom>
       {{ snackbar.message }}
     </v-snackbar>
+
+    <!-- Receipt Modal -->
+    <v-dialog v-model="dialogPrintreceipt" max-width="500px">
+      <v-card>
+        <v-card-title class="justify-center">
+          <span class="headline">Payment Receipt</span>
+        </v-card-title>
+
+        <v-divider></v-divider>
+
+        <v-card-text>
+          <div class="text-center mb-4">
+            <h3> {{ formatCurrency(PaymentReceipt.CollectedAmount) }}</h3>
+          </div>
+
+          <v-list dense>
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>Receipt No:</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content class="text-right">#{{ PaymentReceipt.MapID }}</v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>Date:</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.created_at }}</v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>Customer:</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.CustomerName }}</v-list-item-content>
+            </v-list-item>
+
+         
+
+            <v-list-item>
+              <v-list-item-content>
+                <v-list-item-title>Collected By:</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.CollectedBy }}</v-list-item-content>
+            </v-list-item>
+          </v-list>
+
+          <div class="text-center mt-4">
+            <p>Signature:</p>
+            <img :src="PaymentReceipt.signature" alt="Signature" height="60">
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="justify-space-between">
+          <v-btn color="secondary" text @click="PaymentReceipt = false">Close</v-btn>
+          <v-btn color="primary" @click="printReceipt()">Print</v-btn>
+        </v-card-actions>
+
+        <v-card-subtitle class="text-center grey--text text--darken-1 pb-4">
+          Thank you for your payment.<br>
+          This is a system-generated receipt.
+ 
+        </v-card-subtitle>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -276,8 +348,10 @@ export default {
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
     return {
+      dialogPrintreceipt: false,
       isDrawing: false,
       search: '',
+      PaymentReceipt: [],
       customers: [
         // { cardcode: 'C001', cardname: 'Juan Dela Cruz', branch: 'Main', overdueAmount: 5000.00, status: 'Scheduled', collectionDate: null, arrived: false, trackingPath: [[15.975855447263744,120.5685852],[15.975811,120.5694385],[15.979233,120.5697085],[15.979403,120.5701215],[15.981394688604986, 120.57881989571538],[15.981791481891495, 120.57954220097754],[15.983364476115161, 120.58036769265361]] },
         // { cardcode: 'C002', cardname: 'Maria Santos', branch: 'North', overdueAmount: 0.00, status: 'Collected', collectionDate: null, arrived: false, trackingPath: [] },
@@ -305,21 +379,29 @@ export default {
       trackingInterval: null,
       trackingIndex: 0,
       routePolyline: null,
+      page: 1,
+      itemsPerPage: 10,
+      totalItems: 0,
+      totalPages: 1,
+      searchTimeout: null,
+      scheduledCustomers: [],
     };
   },
   computed: {
     filteredCustomers() {
-      const searchText = this.search.toLowerCase();
-      return this.customers.filter(customer => {
-        const matchesSearch = Object.values(customer).some(value =>
-          String(value).toLowerCase().includes(searchText)
-        );
-        const isAvailableForScheduling = customer.status !== 'Scheduled' && customer.status !== 'Collected' && customer.status !== 'Posted';
-        return matchesSearch && isAvailableForScheduling;
-      });
+      // Server-side search and pagination, so just return customers
+      return this.customers.filter(customer =>
+        customer.status !== 'Scheduled' &&
+        customer.status !== 'Collected' &&
+        customer.status !== 'Posted'
+      );
     },
     scheduledCustomersToday() {
-      return this.customers.filter(customer => customer.status === 'Scheduled');
+      return this.scheduledCustomers;
+    },
+    paginatedCustomers() {
+      // Server-side pagination, so customers array is already paginated
+      return this.filteredCustomers;
     },
   },
   watch: {
@@ -343,18 +425,52 @@ export default {
         });
       }
     },
+    page() {
+      this.fetchCustomers();
+    },
+    search() {
+      // Debounce search to avoid too many API calls
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.page = 1;
+        this.fetchCustomers();
+      }, 300);
+    },
   },
-  mounted() {  
-     axios.get('http://localhost:8000/api/collection/schedule/index')
-    .then(response => {
-      console.log('response from backend:', response.data);
-      this.customers = response.data.data
-    })
-    .catch(error => {
-      console.error('error from backend:', error);
-    });
-  },
+  mounted() {
+      this.fetchCustomers();
+      this.fetchScheduledCustomers();
+   },
   methods: {
+    fetchCustomers() {
+      axios.get('http://localhost:8000/api/collection/schedule/index', {
+        params: {
+          page: this.page,
+          per_page: this.itemsPerPage,
+          search: this.search
+        }
+      })
+      .then(response => {
+        console.log('response from backend:', response.data);
+        this.customers = response.data.data;
+        this.totalItems = response.data.total;
+        this.totalPages = response.data.last_page;
+      })
+      .catch(error => {
+        console.error('error from backend:', error);
+      });
+    },
+    fetchScheduledCustomers() {
+      axios.get('http://localhost:8000/api/collection/scheduled/today')
+      .then(response => {
+        console.log('scheduled customers response:', response.data);
+        this.scheduledCustomers = response.data.data;
+      })
+      .catch(error => {
+        console.error('error fetching scheduled customers:', error);
+        this.scheduledCustomers = [];
+      });
+    },
     getStatusColor(status) {
       if (status === 'Scheduled') return '#42a5f5';
       if (status === 'Overdue') return '#e53935';
@@ -385,17 +501,50 @@ export default {
             data: this.selectedCustomers
           })
           .then(response => {
-            
+            // Refresh scheduled customers data after successful scheduling
+            this.fetchScheduledCustomers();
           })
       this.selectedCustomers = [];
       this.snackbar.message = `${scheduledCount} customer(s) have been scheduled for today.`;
       this.snackbar.show = true;
     },
     onArrived(customer) {
-      const customerIndex = this.customers.findIndex(c => c.CardCode === customer.CardCode);
-      if (customerIndex !== -1) {
-        this.customers[customerIndex].arrived = true;
-      }
+      console.log(customer)
+      // const customerIndex = this.scheduledCustomers.findIndex(c => c.MapID === this.customer.MapID);
+      // alert(customerIndex)
+      // if (customerIndex !== -1) {
+      //   this.scheduledCustomers[customerIndex].arrived = true;
+      // }
+      //GPS TRACKING
+      this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          axios.post('http://localhost:8000/api/collection/arrived/set', {
+            data: {
+              mapid: customer.MapID,
+              Latitude: lat,
+              Longitude: lng
+            }
+          })
+          .then(response => {
+            console.log('Location updated:', response.data);
+            // Refresh scheduled customers after arrival
+            this.fetchScheduledCustomers();
+          });
+        },
+        (error) => {
+          console.error('GPS error:', error);
+        },
+        {
+          enableHighAccuracy: true, // mas accurate
+          maximumAge: 0,            // walang cache
+          timeout: 10000            // 10s max wait
+        }
+      );
+
+      //GPS TRACKING END
       this.snackbar.message = `Arrived at ${customer.CardName}'s location.`;
       this.snackbar.color = 'info';
       this.snackbar.show = true;
@@ -408,6 +557,7 @@ export default {
     },
   
     submitPayment() {
+     
       const signatureData = this.getSignatureImage();
       const isEmpty = !signatureData || signatureData.length < 100;
     
@@ -417,13 +567,33 @@ export default {
         this.snackbar.show = true;
         return;
       }
+      
+      const customerIndex = this.scheduledCustomers.findIndex(c => c.CardCode === this.selectedCustomer.CardCode);
     
-      const customerIndex = this.customers.findIndex(c => c.CardCode === this.selectedCustomer.CardCode);
       if (customerIndex !== -1) {
-        this.customers[customerIndex].status = 'Collected';
-        this.customers[customerIndex].OverDueAmt = 0;
+          this.scheduledCustomers[customerIndex].status = 'Collected';
+          this.scheduledCustomers[customerIndex].OverDueAmt = 0;
+         
+         
+          var data;
+          data = {
+            MapID: this.scheduledCustomers[customerIndex].MapID,
+            CardCode: this.scheduledCustomers[customerIndex].CardCode,
+            CollectedAmount: this.paymentAmount,
+            Signature: signatureData,
+            CollectedBy: this.scheduledCustomers[customerIndex].user_id
+          }
+          alert()
+         axios.post('http://localhost:8000/api/collection/payment/set',data ).then((res)=>{
+              console.log(res)
+              this.PaymentReceipt = res.data.data
+              this.dialogPrintreceipt = true
+              // Refresh both customer lists after payment
+              this.fetchCustomers()
+              this.fetchScheduledCustomers()
+         })
       }
-    
+       
       this.paymentModal = false;
       this.snackbar.message = `Payment of ${this.formatCurrency(this.paymentAmount)} successfully collected from ${this.selectedCustomer.CardName}.`;
       this.snackbar.color = 'success';
@@ -431,6 +601,14 @@ export default {
     },
 
     openMapModal(customer) {
+      axios.get('http://localhost:8000/api/collection/track/get?mapid='+customer.MapID ).then((res)=>{
+        var gps = [];
+        res.data.forEach((item,index)=>{
+          gps.push([item.Latitude , item.Longitude])
+        })
+        this.selectedCustomer.trackingPath =gps
+        console.log(gps)
+      })
       this.selectedCustomer = customer;
       this.mapModal = true;
     },
@@ -541,6 +719,9 @@ export default {
   },
   beforeDestroy() {
     this.closeMapModal();
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
   }
 };
 </script>
