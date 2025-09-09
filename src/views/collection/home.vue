@@ -82,7 +82,7 @@
 
               <v-list-item-action>
                 <v-btn
-                  v-if="customer.arrived == 1"
+                   v-if="customer.arrived == 1"
                   icon
                   color="primary"
                   @click="openPaymentModal(customer)"
@@ -99,11 +99,73 @@
       <v-col cols="12" md="6">
         <v-card class="data-table-card mt-6" style="min-height: 250px;">
           <v-card-title class="white--text">
-            <v-icon class="mr-2">mdi-chart-line</v-icon>
-            Placeholder for Charts or Reports
+            <v-icon class="mr-2">mdi-chart-pie</v-icon>
+            Collection Status Distribution
           </v-card-title>
-          <div class="pa-4 text-center grey--text">
-            [Your charts or other data visualizations here]
+          <v-divider class="divider-line"></v-divider>
+          <div class="pa-4">
+            <canvas ref="statusChart" style="max-height: 300px;"></canvas>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-card class="data-table-card mt-6" style="min-height: 250px;">
+          <v-card-title class="white--text">
+            <v-icon class="mr-2">mdi-chart-line</v-icon>
+            Monthly Collection Trends
+          </v-card-title>
+          <v-divider class="divider-line"></v-divider>
+          <div class="pa-4">
+            <canvas ref="monthlyChart" style="max-height: 300px;"></canvas>
+          </div>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="6">
+        <v-card class="data-table-card mt-6" style="min-height: 250px;">
+          <v-card-title class="white--text">
+            <v-icon class="mr-2">mdi-chart-bar</v-icon>
+            Top Overdue Accounts
+          </v-card-title>
+          <v-divider class="divider-line"></v-divider>
+          <div class="pa-4">
+            <canvas ref="overdueChart" style="max-height: 300px;"></canvas>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col cols="12">
+        <v-card class="data-table-card mt-6" style="min-height: 250px;">
+          <v-card-title class="white--text">
+            <v-icon class="mr-2">mdi-target</v-icon>
+            Branch Collection Efficiency
+          </v-card-title>
+          <v-divider class="divider-line"></v-divider>
+          <div class="pa-4">
+            <div v-if="branchEfficiency.length === 0" class="text-center grey--text">
+              No branch data available
+            </div>
+            <div v-else v-for="branch in branchEfficiency" :key="branch.Branch" class="mb-4">
+              <div class="d-flex justify-space-between align-center mb-1">
+                <span class="white--text text-subtitle-2">{{ branch.Branch }}</span>
+                <span class="primary--text text-subtitle-2">{{ branch.efficiency }}%</span>
+              </div>
+              <v-progress-linear
+                :value="branch.efficiency"
+                color="primary"
+                height="8"
+                rounded
+                background-color="#2c2c2c"
+              ></v-progress-linear>
+              <div class="text-caption grey--text mt-1">
+                {{ branch.collected_count }}/{{ branch.total_accounts }} accounts collected
+              </div>
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -265,81 +327,103 @@
     <!-- Receipt Modal -->
     <v-dialog v-model="dialogPrintreceipt" max-width="500px">
       <v-card class="receipt-card">
-        <v-card-title class="receipt-header justify-center py-4">
-          <div class="d-flex flex-column align-center">
-            <span class="headline font-weight-bold">OFFICIAL RECEIPT</span>
-            <span class="subtitle-2 grey--text text--darken-1">{{ yourCompanyName }}</span>
-            <!-- <span class="caption grey--text text--darken-1">{{ yourCompanyAddress }}</span> -->
-          </div>
+        <v-card-title class="receipt-header d-flex flex-column align-center py-5">
+          <img src="/logo-addessa.svg" alt="Addessa Corporation" class="logo">
+          <span class="text-h5 font-weight-black">COLLECTION RECEIPT</span>
+          <span class="text-caption mt-1">The Way To Comfort Living</span>
         </v-card-title>
 
         <v-divider></v-divider>
 
-        <v-card-text class="receipt-body py-6">
-          <div class="text-center mb-5">
-            <span class="display-1 font-weight-bold primary--text">
+        <v-card-text class="receipt-body px-8 py-6">
+          <div class="text-center my-4">
+            <span class="text-h4 font-weight-bold primary--text">
               {{ formatCurrency(PaymentReceipt.CollectedAmount) }}
             </span>
+            <p class="text-subtitle-2 mt-2 grey--text text--darken-1">Amount Paid</p>
           </div>
+
+          <v-divider class="mb-4"></v-divider>
 
           <v-list dense class="receipt-details">
             <v-list-item>
-              <v-list-item-icon class="mr-2">
-                <v-icon small color="primary">mdi-receipt</v-icon>
-              </v-list-item-icon>
               <v-list-item-content>
                 <v-list-item-title class="font-weight-medium">Receipt No:</v-list-item-title>
               </v-list-item-content>
-              <v-list-item-content class="text-right">#{{ PaymentReceipt.ornumber }}</v-list-item-content>
-            </v-list-item>
-
-            <v-list-item>
-              <v-list-item-icon class="mr-2">
-                <v-icon small color="primary">mdi-calendar</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title class="font-weight-medium">Date:</v-list-item-title>
+              <v-list-item-content class="text-right">
+                <span class="font-weight-bold">{{ PaymentReceipt.ornumber || '638909' }}</span>
               </v-list-item-content>
-              <v-list-item-content class="text-right">{{ PaymentReceipt.created_at }}</v-list-item-content>
             </v-list-item>
-
+            
             <v-list-item>
-              <v-list-item-icon class="mr-2">
-                <v-icon small color="primary">mdi-account</v-icon>
-              </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title class="font-weight-medium">Customer:</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">Payment Date:</v-list-item-title>
               </v-list-item-content>
-              <v-list-item-content class="text-right">{{ PaymentReceipt.CustomerName }}</v-list-item-content>
+              <v-list-item-content class="text-right">{{ formatDate(PaymentReceipt.created_at) || '04-10-2024' }}</v-list-item-content>
             </v-list-item>
 
             <v-list-item>
-              <v-list-item-icon class="mr-2">
-                <v-icon small color="primary">mdi-cash-register</v-icon>
-              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title class="font-weight-medium">Received From:</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.CustomerName || 'Olga Garcia P.' }}</v-list-item-content>
+            </v-list-item>
+
+            <v-list-item>
               <v-list-item-content>
                 <v-list-item-title class="font-weight-medium">Collected By:</v-list-item-title>
               </v-list-item-content>
-              <v-list-item-content class="text-right">{{ PaymentReceipt.collectedby }}</v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.collectedby || 'N/A' }}</v-list-item-content>
             </v-list-item>
           </v-list>
+          
+          <v-divider class="my-4"></v-divider>
 
-          <div class="dashed-divider my-5"></div>
+          <div class="particulars-section">
+            <v-simple-table dense class="mb-4">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-left font-weight-bold">PARTICULARS</th>
+                    <th class="text-right font-weight-bold">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{{ PaymentReceipt.particulars || '---' }}</td>
+                    <td class="text-right">{{ formatCurrency(PaymentReceipt.CollectedAmount) || '₱ 2,749.00' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="font-weight-bold">TOTAL</td>
+                    <td class="text-right font-weight-bold">
+                      {{ formatCurrency(PaymentReceipt.CollectedAmount) || '₱ 2,749.00' }}
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
 
-          <div class="text-center mt-5">
-            <p class="font-weight-medium mb-1">Signature:</p>
-            <img :src="PaymentReceipt.signature" alt="Signature" height="60" class="signature-image">
+            <div class="d-flex justify-space-between text-caption grey--text text--darken-2">
+                <span>Payment Method: CASH</span>
+                <span>Ref No: {{ PaymentReceipt.ornumber || '638909' }}</span>
+            </div>
+          </div>
+          
+          <div class="text-center mt-8">
+            <p class="text-caption mb-1">Authorized Signature</p>
+            <v-img :src="PaymentReceipt.signature" alt="Signature" height="60" contain class="signature-image d-inline-block"></v-img>
+            <v-divider class="my-2"></v-divider>
+            <span class="text-caption red--text text--darken-2 d-block">*THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX*</span>
           </div>
         </v-card-text>
 
-        <v-card-actions class="justify-space-between pb-4 px-6">
-          <v-btn color="secondary" text @click="dialogPrintreceipt = false">Close</v-btn>
+        <v-card-actions class="justify-space-between pa-6">
+          <v-btn color="secondary" text @click="dialogPrintreceipt = false">Cancel</v-btn>
           <v-btn color="primary" @click="printReceipt()">Print</v-btn>
         </v-card-actions>
-
-        <v-card-subtitle class="text-center grey--text text--darken-1 pb-4">
-          <small>Thank you for your payment.</small><br>
-          <small>This is a system-generated receipt and may not require a signature.</small>
+        
+        <v-card-subtitle class="text-center text-caption grey--text text--darken-1 pt-0 pb-4">
+          Thank you for your payment.
         </v-card-subtitle>
       </v-card>
     </v-dialog>
@@ -351,6 +435,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon, Marker, LatLng, Polyline } from 'leaflet';
 import axios from "axios";
+import Chart from 'chart.js';
 
 // Fix for default Leaflet icon not appearing
 // Fix for default Leaflet icon not appearing in Webpack/Vue CLI
@@ -401,6 +486,16 @@ export default {
       totalPages: 1,
       searchTimeout: null,
       scheduledCustomers: [],
+      // Chart data
+      statusChart: null,
+      monthlyChart: null,
+      overdueChart: null,
+      branchEfficiency: [],
+      chartData: {
+        statusDistribution: [],
+        monthlyTrends: [],
+        topOverdue: []
+      },
     };
   },
   computed: {
@@ -457,6 +552,7 @@ export default {
       this.fetchCustomers();
       this.fetchScheduledCustomers();
       this.fetchKpis();
+      this.fetchChartData();
     },
   methods: {
     fetchCustomers() {
@@ -506,6 +602,201 @@ export default {
           { icon: 'mdi-alert-circle', title: 'Overdue Accounts', value: '0' },
           { icon: 'mdi-currency-usd', title: 'Amount to Collect', value: '₱ 0.00' },
         ];
+      });
+    },
+    fetchChartData() {
+      axios.get('http://10.10.10.40:8999/api/collection/chart-data')
+      .then(response => {
+        console.log('Chart data response:', response.data);
+        this.chartData = response.data;
+        this.branchEfficiency = response.data.branch_efficiency || [];
+        this.$nextTick(() => {
+          this.createStatusChart();
+          this.createMonthlyChart();
+          this.createOverdueChart();
+        });
+      })
+      .catch(error => {
+        console.error('error fetching chart data:', error);
+        // Set default empty data
+        this.chartData = {
+          status_distribution: [],
+          monthly_trends: [],
+          top_overdue: []
+        };
+        this.branchEfficiency = [];
+      });
+    },
+    createStatusChart() {
+      const ctx = this.$refs.statusChart;
+      if (!ctx) return;
+
+      const data = this.chartData.status_distribution || [];
+      const labels = data.map(item => item.status);
+      const values = data.map(item => item.count);
+
+      if (this.statusChart) {
+        this.statusChart.destroy();
+      }
+
+      this.statusChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              '#42a5f5', // Scheduled - Blue
+              '#e53935', // Overdue - Red
+              '#43a047', // Collected - Green
+              '#ffb300', // Pending - Yellow
+              '#673ab7', // Posted - Purple
+              '#616161'  // Default - Grey
+            ],
+            borderWidth: 2,
+            borderColor: '#1a1a1a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#ffffff',
+                font: {
+                  size: 12
+                }
+              }
+            }
+          }
+        }
+      });
+    },
+    createMonthlyChart() {
+      const ctx = this.$refs.monthlyChart;
+      if (!ctx) return;
+
+      const data = this.chartData.monthly_trends || [];
+      const labels = data.map(item => {
+        const date = new Date(item.month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      });
+      const values = data.map(item => parseFloat(item.total));
+
+      if (this.monthlyChart) {
+        this.monthlyChart.destroy();
+      }
+
+      this.monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Collection Amount',
+            data: values,
+            borderColor: '#42a5f5',
+            backgroundColor: 'rgba(66, 165, 245, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#ffffff',
+                callback: (value) => this.formatCurrency(value)
+              },
+              grid: {
+                color: '#2c2c2c'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#ffffff'
+              },
+              grid: {
+                color: '#2c2c2c'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#ffffff'
+              }
+            }
+          }
+        }
+      });
+    },
+    formatDate(dateString) {
+      if (!dateString) return "N/A";
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    },
+    createOverdueChart() {
+      const ctx = this.$refs.overdueChart;
+      if (!ctx) return;
+
+      const data = this.chartData.top_overdue || [];
+      const labels = data.map(item => item.CardName.length > 15 ? item.CardName.substring(0, 15) + '...' : item.CardName);
+      const values = data.map(item => parseFloat(item.OverDueAmt));
+
+      if (this.overdueChart) {
+        this.overdueChart.destroy();
+      }
+
+      this.overdueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Overdue Amount',
+            data: values,
+            backgroundColor: '#e53935',
+            borderColor: '#b71c1c',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#ffffff',
+                callback: (value) => this.formatCurrency(value)
+              },
+              grid: {
+                color: '#2c2c2c'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#ffffff',
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                color: '#2c2c2c'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#ffffff'
+              }
+            }
+          }
+        }
       });
     },
     getStatusColor(status) {
@@ -770,66 +1061,241 @@ export default {
       const printWindow = window.open('', '_blank');
       const receiptContent = `
         <html>
-        <head>
-          <title>Payment Receipt</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .receipt-title { text-align: center; font-size: 24px; margin-bottom: 20px; }
-            .amount { text-align: center; font-size: 28px; font-weight: bold; margin: 20px 0; }
-            .details { margin: 20px 0; }
-            .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
-            .signature { text-align: center; margin-top: 20px; }
-            .signature img { max-width: 200px; }
-            .footer { text-align: center; margin-top: 20px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="receipt-title">Payment Receipt</div>
-          <div class="amount">${this.formatCurrency(this.PaymentReceipt.CollectedAmount)}</div>
-          <div class="details">
-            <div class="detail-row">
-              <span>Receipt No:</span>
-              <span>#${this.PaymentReceipt.ornumber}</span>
+          <head>
+            <title>Collection Receipt - Addessa</title>
+            <style>
+              body {
+                font-family: 'Roboto', sans-serif;
+                margin: 0;
+                padding: 20px;
+                color: #333;
+                background: #fff;
+              }
+              .receipt-container {
+                width: 100%;
+                max-width: 450px;
+                margin: 0 auto;
+                border: 1px solid #ddd;
+                padding: 30px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              }
+              .header {
+                text-align: center;
+                margin-bottom: 20px;
+              }
+              .logo {
+                max-width: 150px;
+                margin-bottom: 10px;
+              }
+              .receipt-title {
+                font-size: 24px;
+                font-weight: bold;
+                color: #333;
+              }
+              .subtitle {
+                font-size: 14px;
+                color: #777;
+              }
+              .amount-section {
+                text-align: center;
+                margin: 20px 0;
+              }
+              .amount {
+                font-size: 32px;
+                font-weight: bold;
+                color: #1976D2; /* primary--text in Vuetify */
+              }
+              .label {
+                font-size: 12px;
+                color: #888;
+              }
+              .details-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+              }
+              .details-list li {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px dashed #eee;
+              }
+              .details-list li:last-child {
+                border-bottom: none;
+              }
+              .details-list .label-text {
+                font-weight: 500;
+              }
+              .details-list .value-text {
+                font-weight: 400;
+              }
+              .table-section {
+                margin-top: 20px;
+                border-top: 1px solid #ddd;
+                padding-top: 20px;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+              }
+              table th, table td {
+                padding: 8px 0;
+                text-align: left;
+              }
+              table th:last-child, table td:last-child {
+                text-align: right;
+              }
+              .total-row {
+                font-weight: bold;
+                border-top: 1px solid #ddd;
+              }
+              .disclaimer {
+                text-align: center;
+                font-size: 12px;
+                color: #E53935; /* red--text in Vuetify */
+                margin-top: 20px;
+              }
+              .signature-section {
+                text-align: center;
+                margin-top: 30px;
+              }
+              .signature-section .label-text {
+                font-size: 12px;
+                color: #555;
+                margin-bottom: 5px;
+              }
+              .signature-image {
+                max-width: 150px;
+                height: 60px;
+                object-fit: contain;
+              }
+              .footer-section {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 12px;
+                color: #777;
+                padding-top: 10px;
+                border-top: 1px solid #eee;
+              }
+              /* Hide buttons and dialog background for printing */
+              @media print {
+                .no-print { display: none; }
+                body {
+                  padding: 0 !important;
+                  margin: 0 !important;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="receipt-container">
+              <div class="header">
+                <img src="/logo-addessa.svg" alt="Addessa Corporation" class="logo">
+                <div class="receipt-title">COLLECTION RECEIPT</div>
+                <div class="subtitle">The Way To Comfort Living</div>
+              </div>
+
+              <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+              <div class="amount-section">
+                <div class="amount">
+                  ${this.formatCurrency(this.PaymentReceipt.CollectedAmount)}
+                </div>
+                <div class="label">Amount Paid</div>
+              </div>
+              <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+
+              <ul class="details-list">
+                <li>
+                  <span class="label-text">Receipt No:</span>
+                  <span class="value-text">#${this.PaymentReceipt.ornumber || '638909'}</span>
+                </li>
+                <li>
+                  <span class="label-text">Payment Date:</span>
+                  <span class="value-text">${this.formatDate(this.PaymentReceipt.created_at) || '04-10-2024'}</span>
+                </li>
+                <li>
+                  <span class="label-text">Received From:</span>
+                  <span class="value-text">${this.PaymentReceipt.CustomerName || 'Olga Garcia P.'}</span>
+                </li>
+                <li>
+                  <span class="label-text">Collected By:</span>
+                  <span class="value-text">${this.PaymentReceipt.collectedby || 'N/A'}</span>
+                </li>
+              </ul>
+
+              <div class="table-section">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>PARTICULARS</th>
+                      <th>AMOUNT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>${this.PaymentReceipt.particulars || '---'}</td>
+                      <td>${this.formatCurrency(this.PaymentReceipt.CollectedAmount) || '₱ 2,749.00'}</td>
+                    </tr>
+                    <tr class="total-row">
+                      <td>TOTAL</td>
+                      <td>${this.formatCurrency(this.PaymentReceipt.CollectedAmount) || '₱ 2,749.00'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div style="font-size: 12px; color: #777; margin-top: 10px; display: flex; justify-content: space-between;">
+                <span>Payment Method: CASH</span>
+                <span>Ref No: ${this.PaymentReceipt.ornumber || '638909'}</span>
+              </div>
+
+              <div class="signature-section">
+                <p class="label-text">Authorized Signature</p>
+                <img src="${this.PaymentReceipt.signature}" alt="Signature" class="signature-image">
+                <hr style="border: none; border-top: 1px dashed #ddd; margin-top: 20px;">
+                <div class="disclaimer">
+                  *THIS DOCUMENT IS NOT VALID FOR CLAIM OF INPUT TAX*
+                </div>
+              </div>
+
+              <div class="footer-section">
+                Thank you for your payment.
+              </div>
             </div>
-            <div class="detail-row">
-              <span>Date:</span>
-              <span>${this.PaymentReceipt.created_at}</span>
-            </div>
-            <div class="detail-row">
-              <span>Customer:</span>
-              <span>${this.PaymentReceipt.CustomerName}</span>
-            </div>
-            <div class="detail-row">
-              <span>Collected By:</span>
-              <span>${this.PaymentReceipt.collectedby}</span>
-            </div>
-          </div>
-          <div class="signature">
-            <p>Signature:</p>
-            <img src="${this.PaymentReceipt.signature}" alt="Signature" height="60">
-          </div>
-          <div class="footer">
-            Thank you for your payment.<br>
-            This is a system-generated receipt.
-          </div>
-        </body>
+          </body>
         </html>
       `;
+
       printWindow.document.write(receiptContent);
       printWindow.document.close();
       printWindow.print();
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
     },
-  },
   beforeDestroy() {
     this.closeMapModal();
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+    // Clean up charts
+    if (this.statusChart) {
+      this.statusChart.destroy();
+    }
+    if (this.monthlyChart) {
+      this.monthlyChart.destroy();
+    }
+    if (this.overdueChart) {
+      this.overdueChart.destroy();
+    }
   }
+}
 };
 </script>
 
 <style scoped>
+
 .dashboard-container {
   background-color: #121212 !important;
   min-height: 100vh;
@@ -901,4 +1367,91 @@ export default {
 #map-container {
   z-index: 0;
 }
+
+
+.data-table-card {
+  background-color: #1a1a1a !important;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+.divider-line {
+  border-color: #2c2c2c !important;
+}
+.data-list {
+  background-color: #1a1a1a !important;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.customer-list-item {
+  border-bottom: 1px solid #2c2c2c;
+  transition: background-color 0.3s;
+}
+.customer-list-item:hover {
+  background-color: #2c2c2c !important;
+}
+.dashboard-container {
+  background-color: #121212 !important;
+  min-height: 100vh;
+}
+.receipt-card {
+  font-family: 'Arial', sans-serif;
+  border: 1px solid #000;
+  background-color: #fff;
+}
+.receipt-header {
+  background-color: #f5f5f5;
+  padding: 10px;
+}
+.receipt-body {
+  padding: 10px;
+}
+.receipt-details .v-list-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+.receipt-details .v-list-item__title {
+  font-size: 0.95rem;
+}
+.v-simple-table {
+  width: 100%;
+  border: 1px solid #000;
+}
+.v-simple-table th {
+  border-bottom: 1px solid #000;
+  padding: 5px;
+  font-weight: bold;
+}
+.v-simple-table td {
+  padding: 5px;
+  border-bottom: 1px dashed #000;
+}
+.red--text {
+  color: red;
+}
+.signature-image {
+  border-bottom: 1px solid #000;
+  padding-bottom: 5px;
+}
+.map-modal-card {
+  background-color: #1a1a1a !important;
+}
+#map-container {
+  border-radius: 8px;
+}
+.button-custom {
+  transition: all 0.3s ease;
+  text-transform: none !important;
+  font-weight: 500;
+}
+.button-custom:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+.button-custom:active {
+  transform: translateY(0);
+}
+.logo {
+        max-width: 150px;
+        margin-bottom: 10px;
+      }
 </style>
