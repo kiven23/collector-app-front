@@ -82,6 +82,7 @@
 
               <v-list-item-action>
                 <v-btn
+                  v-if="customer.arrived == 1"
                   icon
                   color="primary"
                   @click="openPaymentModal(customer)"
@@ -263,65 +264,82 @@
 
     <!-- Receipt Modal -->
     <v-dialog v-model="dialogPrintreceipt" max-width="500px">
-      <v-card>
-        <v-card-title class="justify-center">
-          <span class="headline">Payment Receipt</span>
+      <v-card class="receipt-card">
+        <v-card-title class="receipt-header justify-center py-4">
+          <div class="d-flex flex-column align-center">
+            <span class="headline font-weight-bold">OFFICIAL RECEIPT</span>
+            <span class="subtitle-2 grey--text text--darken-1">{{ yourCompanyName }}</span>
+            <!-- <span class="caption grey--text text--darken-1">{{ yourCompanyAddress }}</span> -->
+          </div>
         </v-card-title>
 
         <v-divider></v-divider>
 
-        <v-card-text>
-          <div class="text-center mb-4">
-            <h3> {{ formatCurrency(PaymentReceipt.CollectedAmount) }}</h3>
+        <v-card-text class="receipt-body py-6">
+          <div class="text-center mb-5">
+            <span class="display-1 font-weight-bold primary--text">
+              {{ formatCurrency(PaymentReceipt.CollectedAmount) }}
+            </span>
           </div>
 
-          <v-list dense>
+          <v-list dense class="receipt-details">
             <v-list-item>
+              <v-list-item-icon class="mr-2">
+                <v-icon small color="primary">mdi-receipt</v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>Receipt No:</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">Receipt No:</v-list-item-title>
               </v-list-item-content>
-              <v-list-item-content class="text-right">#{{ PaymentReceipt.MapID }}</v-list-item-content>
+              <v-list-item-content class="text-right">#{{ PaymentReceipt.ornumber }}</v-list-item-content>
             </v-list-item>
 
             <v-list-item>
+              <v-list-item-icon class="mr-2">
+                <v-icon small color="primary">mdi-calendar</v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>Date:</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">Date:</v-list-item-title>
               </v-list-item-content>
               <v-list-item-content class="text-right">{{ PaymentReceipt.created_at }}</v-list-item-content>
             </v-list-item>
 
             <v-list-item>
+              <v-list-item-icon class="mr-2">
+                <v-icon small color="primary">mdi-account</v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>Customer:</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">Customer:</v-list-item-title>
               </v-list-item-content>
               <v-list-item-content class="text-right">{{ PaymentReceipt.CustomerName }}</v-list-item-content>
             </v-list-item>
 
-         
-
             <v-list-item>
+              <v-list-item-icon class="mr-2">
+                <v-icon small color="primary">mdi-cash-register</v-icon>
+              </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title>Collected By:</v-list-item-title>
+                <v-list-item-title class="font-weight-medium">Collected By:</v-list-item-title>
               </v-list-item-content>
-              <v-list-item-content class="text-right">{{ PaymentReceipt.CollectedBy }}</v-list-item-content>
+              <v-list-item-content class="text-right">{{ PaymentReceipt.collectedby }}</v-list-item-content>
             </v-list-item>
           </v-list>
 
-          <div class="text-center mt-4">
-            <p>Signature:</p>
-            <img :src="PaymentReceipt.signature" alt="Signature" height="60">
+          <div class="dashed-divider my-5"></div>
+
+          <div class="text-center mt-5">
+            <p class="font-weight-medium mb-1">Signature:</p>
+            <img :src="PaymentReceipt.signature" alt="Signature" height="60" class="signature-image">
           </div>
         </v-card-text>
 
-        <v-card-actions class="justify-space-between">
-          <v-btn color="secondary" text @click="PaymentReceipt = false">Close</v-btn>
+        <v-card-actions class="justify-space-between pb-4 px-6">
+          <v-btn color="secondary" text @click="dialogPrintreceipt = false">Close</v-btn>
           <v-btn color="primary" @click="printReceipt()">Print</v-btn>
         </v-card-actions>
 
         <v-card-subtitle class="text-center grey--text text--darken-1 pb-4">
-          Thank you for your payment.<br>
-          This is a system-generated receipt.
- 
+          <small>Thank you for your payment.</small><br>
+          <small>This is a system-generated receipt and may not require a signature.</small>
         </v-card-subtitle>
       </v-card>
     </v-dialog>
@@ -348,6 +366,8 @@ export default {
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
     return {
+      watchIds: {},
+      yourCompanyName: 'Addessa Corporation',
       dialogPrintreceipt: false,
       isDrawing: false,
       search: '',
@@ -361,11 +381,7 @@ export default {
         // { cardcode: 'C006', cardname: 'Elisa Cruz', branch: 'South', overdueAmount: 750.75, status: 'Posted', collectionDate: null, arrived: false, trackingPath: [] },
         // { cardcode: 'C007', cardname: 'Robert Go', branch: 'Main', overdueAmount: 2000.00, status: 'Pending', collectionDate: null, arrived: false, trackingPath: [] },
       ],
-      kpis: [
-        { icon: 'mdi-chart-bar', title: 'Total Accounts', value: '1,250' },
-        { icon: 'mdi-alert-circle', title: 'Overdue Accounts', value: '187' },
-        { icon: 'mdi-currency-usd', title: 'Amount to Collect', value: '₱ 2.5M' },
-      ],
+      kpis: [],
       formattedToday: formattedToday,
       selectedCustomers: [],
       snackbar: { show: false, message: '', color: 'success', timeout: 3000 },
@@ -440,10 +456,11 @@ export default {
   mounted() {
       this.fetchCustomers();
       this.fetchScheduledCustomers();
-   },
+      this.fetchKpis();
+    },
   methods: {
     fetchCustomers() {
-      axios.get('http://localhost:8000/api/collection/schedule/index', {
+      axios.get('http://10.10.10.40:8999/api/collection/schedule/index', {
         params: {
           page: this.page,
           per_page: this.itemsPerPage,
@@ -461,7 +478,7 @@ export default {
       });
     },
     fetchScheduledCustomers() {
-      axios.get('http://localhost:8000/api/collection/scheduled/today')
+      axios.get('http://10.10.10.40:8999/api/collection/scheduled/today')
       .then(response => {
         console.log('scheduled customers response:', response.data);
         this.scheduledCustomers = response.data.data;
@@ -469,6 +486,26 @@ export default {
       .catch(error => {
         console.error('error fetching scheduled customers:', error);
         this.scheduledCustomers = [];
+      });
+    },
+    fetchKpis() {
+      axios.get('http://10.10.10.40:8999/api/collection/kpis')
+      .then(response => {
+        console.log('KPIs response:', response.data);
+        this.kpis = [
+          { icon: 'mdi-chart-bar', title: 'Total Accounts', value: response.data.total_accounts.toLocaleString() },
+          { icon: 'mdi-alert-circle', title: 'Overdue Accounts', value: response.data.overdue_accounts.toLocaleString() },
+          { icon: 'mdi-currency-usd', title: 'Amount to Collect', value: this.formatCurrency(response.data.amount_to_collect) },
+        ];
+      })
+      .catch(error => {
+        console.error('error fetching KPIs:', error);
+        // Fallback to default values if API fails
+        this.kpis = [
+          { icon: 'mdi-chart-bar', title: 'Total Accounts', value: '0' },
+          { icon: 'mdi-alert-circle', title: 'Overdue Accounts', value: '0' },
+          { icon: 'mdi-currency-usd', title: 'Amount to Collect', value: '₱ 0.00' },
+        ];
       });
     },
     getStatusColor(status) {
@@ -497,7 +534,7 @@ export default {
            
         }
       });
-       axios.post('http://localhost:8000/api/collection/schedule/set', {
+       axios.post('http://10.10.10.40:8999/api/collection/schedule/set', {
             data: this.selectedCustomers
           })
           .then(response => {
@@ -510,44 +547,55 @@ export default {
     },
     onArrived(customer) {
       console.log(customer)
-      // const customerIndex = this.scheduledCustomers.findIndex(c => c.MapID === this.customer.MapID);
-      // alert(customerIndex)
-      // if (customerIndex !== -1) {
-      //   this.scheduledCustomers[customerIndex].arrived = true;
-      // }
-      //GPS TRACKING
-      this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
+      const mapid = customer.MapID;
+
+      // prevent duplicate watch
+      if (this.watchIds[mapid]) {
+        console.log(`Already tracking ${mapid}`);
+        return;
+      }
+
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          axios.post('http://localhost:8000/api/collection/arrived/set', {
+          axios.post('http://10.10.10.40:8999/api/collection/arrived/set', {
             data: {
-              mapid: customer.MapID,
+              mapid: mapid,
               Latitude: lat,
-              Longitude: lng
-            }
+              Longitude: lng,
+            },
           })
           .then(response => {
-            console.log('Location updated:', response.data);
-            // Refresh scheduled customers after arrival
+            console.log(`Location updated for ${mapid}:`, response.data);
             this.fetchScheduledCustomers();
           });
         },
         (error) => {
-          console.error('GPS error:', error);
+          console.error(`GPS error for ${mapid}:`, error);
         },
         {
-          enableHighAccuracy: true, // mas accurate
-          maximumAge: 0,            // walang cache
-          timeout: 10000            // 10s max wait
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 10000,
         }
       );
+
+      // save watchId per mapid
+      this.watchIds[mapid] = watchId;
 
       //GPS TRACKING END
       this.snackbar.message = `Arrived at ${customer.CardName}'s location.`;
       this.snackbar.color = 'info';
       this.snackbar.show = true;
+    },
+    stopTracking(mapid) {
+      if (this.watchIds[mapid]) {
+        navigator.geolocation.clearWatch(this.watchIds[mapid]);
+        delete this.watchIds[mapid];
+        console.log(`Stopped tracking ${mapid}`);
+      }
     },
     openPaymentModal(customer) {
       this.selectedCustomer = { ...customer };
@@ -583,11 +631,13 @@ export default {
             Signature: signatureData,
             CollectedBy: this.scheduledCustomers[customerIndex].user_id
           }
-          alert()
-         axios.post('http://localhost:8000/api/collection/payment/set',data ).then((res)=>{
+   
+         axios.post('http://10.10.10.40:8999/api/collection/payment/set',data ).then((res)=>{
               console.log(res)
               this.PaymentReceipt = res.data.data
               this.dialogPrintreceipt = true
+              this.stopTracking(this.PaymentReceipt.MapID)  
+              
               // Refresh both customer lists after payment
               this.fetchCustomers()
               this.fetchScheduledCustomers()
@@ -601,7 +651,7 @@ export default {
     },
 
     openMapModal(customer) {
-      axios.get('http://localhost:8000/api/collection/track/get?mapid='+customer.MapID ).then((res)=>{
+      axios.get('http://10.10.10.40:8999/api/collection/track/get?mapid='+customer.MapID ).then((res)=>{
         var gps = [];
         res.data.forEach((item,index)=>{
           gps.push([item.Latitude , item.Longitude])
@@ -715,6 +765,59 @@ export default {
     getSignatureImage() {
       const canvas = this.$refs.signatureCanvas;
       return canvas.toDataURL("image/jpeg");
+    },
+    printReceipt() {
+      const printWindow = window.open('', '_blank');
+      const receiptContent = `
+        <html>
+        <head>
+          <title>Payment Receipt</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .receipt-title { text-align: center; font-size: 24px; margin-bottom: 20px; }
+            .amount { text-align: center; font-size: 28px; font-weight: bold; margin: 20px 0; }
+            .details { margin: 20px 0; }
+            .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
+            .signature { text-align: center; margin-top: 20px; }
+            .signature img { max-width: 200px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-title">Payment Receipt</div>
+          <div class="amount">${this.formatCurrency(this.PaymentReceipt.CollectedAmount)}</div>
+          <div class="details">
+            <div class="detail-row">
+              <span>Receipt No:</span>
+              <span>#${this.PaymentReceipt.ornumber}</span>
+            </div>
+            <div class="detail-row">
+              <span>Date:</span>
+              <span>${this.PaymentReceipt.created_at}</span>
+            </div>
+            <div class="detail-row">
+              <span>Customer:</span>
+              <span>${this.PaymentReceipt.CustomerName}</span>
+            </div>
+            <div class="detail-row">
+              <span>Collected By:</span>
+              <span>${this.PaymentReceipt.collectedby}</span>
+            </div>
+          </div>
+          <div class="signature">
+            <p>Signature:</p>
+            <img src="${this.PaymentReceipt.signature}" alt="Signature" height="60">
+          </div>
+          <div class="footer">
+            Thank you for your payment.<br>
+            This is a system-generated receipt.
+          </div>
+        </body>
+        </html>
+      `;
+      printWindow.document.write(receiptContent);
+      printWindow.document.close();
+      printWindow.print();
     },
   },
   beforeDestroy() {
