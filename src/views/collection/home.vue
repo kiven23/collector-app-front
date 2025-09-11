@@ -83,6 +83,7 @@
               <v-list-item-action>
                 <v-btn
                    v-if="customer.arrived == 1"
+
                   icon
                   color="primary"
                   @click="openPaymentModal(customer)"
@@ -556,7 +557,7 @@ export default {
     },
   methods: {
     fetchCustomers() {
-      axios.get('http://10.10.10.40:8999/api/collection/schedule/index', {
+      axios.get('https://collector-api.addessa.com/api/collection/schedule/index', {
         params: {
           page: this.page,
           per_page: this.itemsPerPage,
@@ -574,7 +575,7 @@ export default {
       });
     },
     fetchScheduledCustomers() {
-      axios.get('http://10.10.10.40:8999/api/collection/scheduled/today')
+      axios.get('https://collector-api.addessa.com/api/collection/scheduled/today')
       .then(response => {
         console.log('scheduled customers response:', response.data);
         this.scheduledCustomers = response.data.data;
@@ -585,7 +586,7 @@ export default {
       });
     },
     fetchKpis() {
-      axios.get('http://10.10.10.40:8999/api/collection/kpis')
+      axios.get('https://collector-api.addessa.com/api/collection/kpis')
       .then(response => {
         console.log('KPIs response:', response.data);
         this.kpis = [
@@ -605,7 +606,7 @@ export default {
       });
     },
     fetchChartData() {
-      axios.get('http://10.10.10.40:8999/api/collection/chart-data')
+      axios.get('https://collector-api.addessa.com/api/collection/chart-data')
       .then(response => {
         console.log('Chart data response:', response.data);
         this.chartData = response.data;
@@ -825,7 +826,7 @@ export default {
            
         }
       });
-       axios.post('http://10.10.10.40:8999/api/collection/schedule/set', {
+       axios.post('https://collector-api.addessa.com/api/collection/schedule/set', {
             data: this.selectedCustomers
           })
           .then(response => {
@@ -851,7 +852,7 @@ export default {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          axios.post('http://10.10.10.40:8999/api/collection/arrived/set', {
+          axios.post('https://collector-api.addessa.com/api/collection/arrived/set', {
             data: {
               mapid: mapid,
               Latitude: lat,
@@ -923,7 +924,7 @@ export default {
             CollectedBy: this.scheduledCustomers[customerIndex].user_id
           }
    
-         axios.post('http://10.10.10.40:8999/api/collection/payment/set',data ).then((res)=>{
+         axios.post('https://collector-api.addessa.com/api/collection/payment/set',data ).then((res)=>{
               console.log(res)
               this.PaymentReceipt = res.data.data
               this.dialogPrintreceipt = true
@@ -942,7 +943,7 @@ export default {
     },
 
     openMapModal(customer) {
-      axios.get('http://10.10.10.40:8999/api/collection/track/get?mapid='+customer.MapID ).then((res)=>{
+      axios.get('https://collector-api.addessa.com/api/collection/track/get?mapid='+customer.MapID ).then((res)=>{
         var gps = [];
         res.data.forEach((item,index)=>{
           gps.push([item.Latitude , item.Longitude])

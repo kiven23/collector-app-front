@@ -1,3 +1,3 @@
-const rootUrl = "http://10.10.10.40:8999";
+const rootUrl = "https://collector-api.addessa.com";
 
 export default rootUrl;

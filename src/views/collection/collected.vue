@@ -256,7 +256,7 @@ export default {
     openMapModal(customer) {
       this.selectedCustomer = { ...customer };
       const gps = [];
-      axios.get(`http://10.10.10.40:8999/api/collection/track/get?mapid=${customer.MapID}`)
+      axios.get(`https://collector-api.addessa.com/api/collection/track/get?mapid=${customer.MapID}`)
         .then((res) => {
           res.data.forEach((item) => {
             gps.push([item.Latitude, item.Longitude]);
@@ -275,7 +275,7 @@ export default {
         });
     },
     getPayment(id) {
-      axios.get(`http://10.10.10.40:8999/api/collection/payment/receipt?mapid=${id}`)
+      axios.get(`https://collector-api.addessa.com/api/collection/payment/receipt?mapid=${id}`)
         .then((res) => {
           this.PaymentReceipt = res.data;
           this.dialogPrintreceipt = true;
@@ -291,7 +291,7 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get(
-          "http://10.10.10.40:8999/api/collection/collected/payments",
+          "https://collector-api.addessa.com/api/collection/collected/payments",
           {
             params: {
               page: this.page,
@@ -607,7 +607,7 @@ export default {
     },
     posted(payment) {
       if (confirm(`Are you sure you want to mark this payment as Posted?`)) {
-        axios.post(`http://10.10.10.40:8999/api/collection/payment/posted`, {
+        axios.post(`https://collector-api.addessa.com/api/collection/payment/posted`, {
           mapid: payment.MapID
         })
         .then((response) => {
